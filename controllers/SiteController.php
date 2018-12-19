@@ -4,11 +4,13 @@ namespace app\controllers;
 
 use Yii;
 use yii\filters\AccessControl;
+use yii\helpers\FileHelper;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
 use app\models\UploadForm;
+use yii\web\UploadedFile;
 
 include(Yii::getAlias('@app/functions.php'));
 
@@ -52,25 +54,30 @@ class SiteController extends Controller
 
     public function actionIndex()
     {
-        $fileName = mb_convert_encoding(Yii::getAlias('@app/Price.xlsx'), 'Windows-1251', 'UTF-8');
-        loadPrice($fileName);
-
-
-        //echo '<pre>' . print_r($cats, true) . '</pre>';
-
-        return $this->render('index');
-    }
-
-    public function actionUpload()
-    {
-        $model = new UploadForm();
+        $uploadmodel = new UploadForm();
         if (Yii::$app->request->isPost) {
-            $model->file = UploadedFile::getInstance($model, 'file');
-            if ($model->file && $model->validate()) {
-                $model->file->saveAs('uploads/' . $model->file->baseName . '.' . $model->file->extension);
+            $uploadmodel->file = UploadedFile::getInstance($uploadmodel, 'file');
+            if ($uploadmodel->file && $uploadmodel->validate()) {
+                $path = Yii::getAlias('@app/uploads');
+                if(!file_exists($path)){
+                    FileHelper::createDirectory($path);
+                }
+                $filename = $path . '/' . $uploadmodel->file->baseName . '.' . $uploadmodel->file->extension;
+                if($uploadmodel->file->saveAs($filename)){
+                    Yii::$app->session->setFlash('success-load', 'Файл успешно загружен!');
+                } else {
+                    Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл!');
+                }
+                if(loadPrice($filename)){
+                    Yii::$app->session->setFlash('success-proc', 'Файл успешно обработан!');
+                } else {
+                    Yii::$app->session->setFlash('error-proc', 'Не удалось обработать файл!');
+                }
+                $uploadmodel = new UploadForm();
+                return $this->redirect('/');
             }
         }
-        return $this->render('index', ['model' => $model]);
+        return $this->render('index', compact('uploadmodel'));
     }
 
     public function actionLogin()

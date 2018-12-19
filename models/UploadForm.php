@@ -1,13 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: E.Pinchuk
- * Date: 19.12.2018
- * Time: 12:15
- */
 
 namespace app\models;
 
+use yii\base\Model;
 
 class UploadForm extends Model
 {

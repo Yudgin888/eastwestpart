@@ -4,14 +4,13 @@ include(Yii::getAlias('@app/CreateTables.php'));
 
 function resetTable(){
     try {
-        $db = \Yii::$app->db;
+        $db = \Yii::$app->getDb();
         if(empty($db)){
             echo 'Error connection DB';
             die;
         }
         $createTables = new CreateTables();
-        $createTables->down();
-        $createTables->up();
+        $createTables->reset();
     } catch (Exception $e) {
         echo $e->getMessage();
         die;
@@ -22,15 +21,18 @@ function loadPrice($fileName){
     resetTable();
     $cats = parsePrice($fileName);
     foreach ($cats as $cat) {
-        if(!parseArr($cat[0])){
-            return false;
+        if(!empty($cat)) {
+            if (!parseArr($cat[0])) {
+                return false;
+            }
         }
     }
+    return true;
 }
 
 function parseArr($cat, $parent_id = 0){
     $name = trim($cat['name']);
-    $info = implode('\\n', $cat['info']);
+    $info = isset($cat['info']) ? implode('\\n', $cat['info']) : '';
     $category = new \app\models\Category($name, $info, $parent_id);
     if($category->save()){
         $id = Yii::$app->db->lastInsertID;
@@ -39,7 +41,7 @@ function parseArr($cat, $parent_id = 0){
                 $name = $model['0'];
                 $parameters = $model['1'];
                 $price = $model['2'];
-                $model = new \app\models\Model($name, $parameters, $price, $id);
+                $model = new \app\models\TModel($name, $parameters, $price, $id);
                 if(!$model->save()) return false;
             }
         }

@@ -2,16 +2,15 @@
 /**
  * Created by PhpStorm.
  * User: E.Pinchuk
- * Date: 18.12.2018
- * Time: 16:58
+ * Date: 19.12.2018
+ * Time: 12:49
  */
 
 namespace app\models;
 
-
 use yii\db\ActiveRecord;
 
-class Model extends ActiveRecord
+class TModel extends ActiveRecord
 {
 //    public $name;
 //    public $parameters;
