@@ -6,29 +6,29 @@ class CreateTables extends Migration
     public function up()
     {
         $db = \Yii::$app->db;
+        $db->createCommand("SET GLOBAL sql_mode=''");
         if ($db->getTableSchema('category', true) === null) {
             $this->createTable('category', [
                 'id' => $this->primaryKey(),
                 'name' => $this->string()->notNull(),
-                'info' => $this->string(),
-                'id_par' => $this->integer()->defaultValue(-1),
+                'info' => $this->text(),
+                'id_par' => $this->integer()->notNull()->defaultValue(0),
             ]);
 
-            $this->addForeignKey(
+            /*$this->addForeignKey(
                 "fk_category_id",
                 "category",
                 "id_par",
                 "category",
                 "id",
-                "RESTRICT",
-                "CASCADE"
-            );
+                "RESTRICT"
+            );*/
         }
         if ($db->getTableSchema('model', true) === null) {
             $this->createTable('model', [
                 'id' => $this->primaryKey(),
                 'name' => $this->string()->notNull(),
-                'parameters' => $this->string(),
+                'parameters' => $this->text(),
                 'price' => $this->string(),
                 'id_category' => $this->integer()->notNull(),
             ]);
@@ -39,15 +39,19 @@ class CreateTables extends Migration
                 "id_category",
                 "category",
                 "id",
-                "RESTRICT",
-                "CASCADE"
+                "RESTRICT"
             );
         }
     }
 
     public function down()
     {
-        $this->dropTable('category');
-        $this->dropTable('model');
+        $db = \Yii::$app->db;
+        if ($db->getTableSchema('model', true) !== null) {
+            $this->dropTable('model');
+        }
+        if ($db->getTableSchema('category', true) !== null) {
+            $this->dropTable('category');
+        }
     }
 }

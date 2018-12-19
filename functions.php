@@ -2,7 +2,7 @@
 
 include(Yii::getAlias('@app/CreateTables.php'));
 
-function chechDB(){
+function resetTable(){
     try {
         $db = \Yii::$app->db;
         if(empty($db)){
@@ -10,32 +10,60 @@ function chechDB(){
             die;
         }
         $createTables = new CreateTables();
+        $createTables->down();
         $createTables->up();
     } catch (Exception $e) {
-        echo 'Error connection DB';
+        echo $e->getMessage();
         die;
     }
 }
 
 function loadPrice($fileName){
+    resetTable();
+    $cats = parsePrice($fileName);
+    foreach ($cats as $cat) {
+        if(!parseArr($cat[0])){
+            return false;
+        }
+    }
+}
+
+function parseArr($cat, $parent_id = 0){
+    $name = trim($cat['name']);
+    $info = implode('\\n', $cat['info']);
+    $category = new \app\models\Category($name, $info, $parent_id);
+    if($category->save()){
+        $id = Yii::$app->db->lastInsertID;
+        if(isset($cat['models']) && count($cat['models']) > 0) {
+            foreach ($cat['models'] as $model){
+                $name = $model['0'];
+                $parameters = $model['1'];
+                $price = $model['2'];
+                $model = new \app\models\Model($name, $parameters, $price, $id);
+                if(!$model->save()) return false;
+            }
+        }
+        if(isset($cat['child_cats']) && count($cat['child_cats']) > 0){
+            foreach ($cat['child_cats'] as $child) {
+                parseArr($child, $id);
+            }
+        }
+        return true;
+    } else return false;
+}
+
+function parsePrice($fileName){
     $data = \moonland\phpexcel\Excel::import($fileName, [
         'setFirstRecordAsKeys' => false, // if you want to set the keys of record column with first record, if it not set, the header with use the alphabet column on excel.
         'setIndexSheetByName' => true, // set this if your excel data with multiple worksheet, the index of array will be set with the sheet name. If this not set, the index will use numeric.
     ]);
-    $cats = array_map(function($item) {
-        return [
-            'name' => $item['A'],
-        ];
-    }, array_slice($data['Оглавление'], 1));
     $data = array_slice($data, 1);
-    $i = 0;
+    $cats = [];
     foreach($data as $datum){
-        $cats[$i]['sheet'] = getSubCategories($datum);
-        $i++;
+        $cats[] = getSubCategories($datum);
     }
     return $cats;
 }
-
 
 function getSubCategories($cat, $parent_cat = '\*', $level = 1, &$i = 0){
     $result = [];
@@ -79,6 +107,7 @@ function getSubCategories($cat, $parent_cat = '\*', $level = 1, &$i = 0){
                 return !empty($element);
             });
             if(count($table) > 1){
+                $table = array_values($table);
                 if(isset($curr_item['models'])){
                     $curr_item['models'][] = $table;
                 } else {
