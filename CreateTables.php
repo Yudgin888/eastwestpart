@@ -2,7 +2,7 @@
 
 class CreateTables
 {
-    public function up()
+    public static function up()
     {
         $db = \Yii::$app->getDb();
         //$db->createCommand("SET GLOBAL sql_mode=''");
@@ -11,6 +11,7 @@ class CreateTables
                 CREATE TABLE `category` (
                   `id` int(11) NOT NULL AUTO_INCREMENT,
                   `name` varchar(255) NOT NULL,
+                  `num` varchar(255) NOT NULL,
                   `info` longtext NOT NULL,
                   `id_par` int(11) NOT NULL DEFAULT 0,
                   PRIMARY KEY (`id`)
@@ -64,8 +65,8 @@ class CreateTables
         }
     }
 
-    public function reset(){
-        $this->up();
+    public static function reset(){
+        self::up();
         $db = \Yii::$app->getDb();
         $sql = "DELETE FROM `category`";
         $db->createCommand($sql)->execute();
@@ -73,7 +74,7 @@ class CreateTables
         $db->createCommand($sql)->execute();
     }
 
-    public function down()
+    public static function down()
     {
         $db = \Yii::$app->db;
         if ($db->getTableSchema('model', true) !== null) {

@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\Category;
 use Yii;
 use yii\filters\AccessControl;
 use yii\helpers\FileHelper;
@@ -52,6 +53,15 @@ class SiteController extends Controller
         ];
     }
 
+    public function beforeAction($action)
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+        \CreateTables::up();
+        return true;
+    }
+
     public function actionIndex()
     {
         $uploadmodel = new UploadForm();
@@ -77,7 +87,9 @@ class SiteController extends Controller
                 return $this->redirect('/');
             }
         }
-        return $this->render('index', compact('uploadmodel'));
+        $cats = Category::find()->asArray()->where('id_par=0')->all();
+
+        return $this->render('index', compact('uploadmodel', 'cats'));
     }
 
     public function actionLogin()

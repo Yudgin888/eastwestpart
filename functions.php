@@ -9,8 +9,7 @@ function resetTable(){
             echo 'Error connection DB';
             die;
         }
-        $createTables = new CreateTables();
-        $createTables->reset();
+        CreateTables::reset();
     } catch (Exception $e) {
         echo $e->getMessage();
         die;
@@ -33,7 +32,8 @@ function loadPrice($fileName){
 function parseArr($cat, $parent_id = 0){
     $name = trim($cat['name']);
     $info = isset($cat['info']) ? implode('\\n', $cat['info']) : '';
-    $category = new \app\models\Category($name, $info, $parent_id);
+    $num = isset($cat['num']) ? str_replace('*', '', $cat['num']) : '';
+    $category = new \app\models\Category($name, $num, $info, $parent_id);
     if($category->save()){
         $id = Yii::$app->db->lastInsertID;
         if(isset($cat['models']) && count($cat['models']) > 0) {
@@ -70,9 +70,9 @@ function parsePrice($fileName){
 function getSubCategories($cat, $parent_cat = '\*', $level = 1, &$i = 0){
     $result = [];
     $num_cat = '';
-    $pattern = '/' . $parent_cat . '[1-9]+[.](?![1-9])/';
+    $pattern = '/' . $parent_cat . '[0-9]+[.](?![0-9])/';
     $curr_item = [];
-    for (; $i < count($cat); $i++){
+    for (; $i < count($cat) + 1; $i++){
         if(!isset($cat[$i])){
             continue;
         }
@@ -81,9 +81,9 @@ function getSubCategories($cat, $parent_cat = '\*', $level = 1, &$i = 0){
             continue;
         }
 
-        if(!empty($str) && preg_match('/\*[1-9]./', $str)){
+        if(!empty($str) && preg_match('/\*[0-9]./', $str)){
             $matches = [];
-            preg_match_all('/[1-9]./', $str, $matches);
+            preg_match_all('/[0-9]./', $str, $matches);
             if(!empty($matches) && (count($matches[0]) < $level || count($matches[0]) > ($level + 1))){
                 if(!empty($curr_item)) {
                     $result[] = $curr_item;
@@ -100,9 +100,14 @@ function getSubCategories($cat, $parent_cat = '\*', $level = 1, &$i = 0){
                 $curr_item = [];
             }
             $num_cat = $matches[0];
-            $curr_item['name'] = substr( $str, strlen($num_cat));
+            $name = substr( $str, strlen($num_cat));
+            //$name = preg_replace("/^(\\s)+/", "", $name);
+            //$name = preg_replace("/^(\\s)*|(\\s)*$/", "", $name);
+            $name = htmlentities($name);
+            $name = str_replace("&nbsp;",'',$name);
+            $curr_item['name'] = trim($name);
             $curr_item['num'] = $num_cat;
-        } elseif (preg_match ('/' . $parent_cat .'[1-9]+[.][1-9]+[.](?![1-9])/', $str, $matches)) {
+        } elseif (preg_match ('/' . $parent_cat .'[0-9]+[.][0-9]+[.](?![0-9])/', $str, $matches)) {
             $curr_item['child_cats'] = getSubCategories($cat, '(\\' . $num_cat . ')', $level + 1, $i);
         } elseif (!empty($curr_item['name'])) {
             $table = array_filter($cat[$i], function($element) {

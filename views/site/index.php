@@ -13,28 +13,28 @@ $this->title = 'My Yii Application';
     if(Yii::$app->session->hasFlash('success-load')):?>
         <div class="alert alert-success alert-dismissible" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <strong>Warning!</strong><?= Yii::$app->session->getFlash('success-load');?>
+            <?= Yii::$app->session->getFlash('success-load');?>
         </div>
     <?php endif;?>
     <?php
     if(Yii::$app->session->hasFlash('error-load')):?>
         <div class="alert alert-danger alert-dismissible" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <strong>Warning!</strong><?= Yii::$app->session->getFlash('error-load');?>
+            <?= Yii::$app->session->getFlash('error-load');?>
         </div>
     <?php endif;?>
     <?php
     if(Yii::$app->session->hasFlash('success-proc')):?>
         <div class="alert alert-success alert-dismissible" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <strong>Warning!</strong><?= Yii::$app->session->getFlash('success-proc');?>
+            <?= Yii::$app->session->getFlash('success-proc');?>
         </div>
     <?php endif;?>
     <?php
     if(Yii::$app->session->hasFlash('error-proc')):?>
         <div class="alert alert-danger alert-dismissible" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <strong>Warning!</strong><?= Yii::$app->session->getFlash('error-proc');?>
+            <?= Yii::$app->session->getFlash('error-proc');?>
         </div>
     <?php endif;?>
 
@@ -45,6 +45,19 @@ $this->title = 'My Yii Application';
         <?= $form->field($uploadmodel, 'file')->fileInput() ?>
         <button>Отправить</button>
         <?php ActiveForm::end() ?>
+
+        <?php if(count($cats) > 0):?>
+        <div class="selects-block">
+            <select class="select-item-cat">
+                <option value="Выберите категорию" data-id="0" selected>Выберите категорию</option>
+                <?php foreach ($cats as $cat):
+                    $name = $cat['num'] . ' ' . $cat['name']?>
+                <option value="<?= $name?>" data-id="<?= $cat['id']?>"><?= $name?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <?php endif;?>
+
 
     </div>
 </div>
