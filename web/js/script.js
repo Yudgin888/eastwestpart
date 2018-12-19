@@ -4,7 +4,25 @@ $(document).ready(function() {
 
 function setSelectHandlers(){
     $('.select-item-cat').on('change', function(e){
-        debugger;
-        var targ = e.target;
+        var option = $(e.target).find('option:selected');
+        var id = $(option).data('id');
+        if(id == 0){
+
+        } else {
+             $.ajax({
+                url: '/site/index',
+                type: 'POST',
+                data: {
+                    id: id
+                },
+                success: function(res){
+                    debugger;
+                    console.log(res);
+                },
+                error: function(res){
+                    console.log(res);
+                }
+            });
+        }
     });
 }
