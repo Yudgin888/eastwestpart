@@ -13,7 +13,8 @@ function setSelectHandlers(){
                 url: '/site/index',
                 type: 'POST',
                 data: {
-                    id: id
+                    id: id,
+                    name: 'change-cat'
                 },
                 success: function(res){
                     debugger;

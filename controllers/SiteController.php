@@ -65,6 +65,15 @@ class SiteController extends Controller
     public function actionIndex()
     {
         $uploadmodel = new UploadForm();
+        if(Yii::$app->request->isAjax){
+            $post = Yii::$app->request->post();
+            if($post && $post['name'] == 'delete') {
+            
+            }
+
+
+            return 'Запрос принят!';
+        }
         if (Yii::$app->request->isPost) {
             $uploadmodel->file = UploadedFile::getInstance($uploadmodel, 'file');
             if ($uploadmodel->file && $uploadmodel->validate()) {
