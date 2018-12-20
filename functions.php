@@ -1,6 +1,6 @@
 <?php
 
-include(Yii::getAlias('@app/CreateTables.php'));
+use app\myClass\CreateTables;
 
 function resetTable(){
     try {

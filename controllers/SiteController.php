@@ -12,6 +12,7 @@ use app\models\LoginForm;
 use app\models\ContactForm;
 use app\models\UploadForm;
 use yii\web\UploadedFile;
+use app\myClass\CreateTables;
 
 include(Yii::getAlias('@app/functions.php'));
 
@@ -58,22 +59,38 @@ class SiteController extends Controller
         if (!parent::beforeAction($action)) {
             return false;
         }
-        \CreateTables::up();
+        CreateTables::up();
         return true;
+    }
+
+    public function ajaxHandler()
+    {
+       $post = Yii::$app->request->post();
+       if($post && $post['name'] == 'change-cat') {
+           $id = $post['id'];
+           $cats = Category::find()->asArray()->where('id_par=' . $id)->all();
+           $result = '';
+           if(count($cats) > 0) {
+               $result .= '<div class="selects-block">
+                             <select class="select-item-cat">
+                                <option value="Выберите категорию" data-id="0" selected>Выберите категорию</option>';
+               foreach ($cats as $cat) {
+                   $name = $cat['num'] . ' ' . $cat['name'];
+                   $result .= '<option value="' . $name . '" data-id="' . $cat['id'] . '">' . $name . '</option>';
+               }
+               $result .= '</select>
+                    </div>';
+           }
+           return $result;
+       } else return false;
     }
 
     public function actionIndex()
     {
-        $uploadmodel = new UploadForm();
-        if(Yii::$app->request->isAjax){
-            $post = Yii::$app->request->post();
-            if($post && $post['name'] == 'delete') {
-            
-            }
-
-
-            return 'Запрос принят!';
+        if(Yii::$app->request->isAjax) {
+            return $this->ajaxHandler();
         }
+        $uploadmodel = new UploadForm();
         if (Yii::$app->request->isPost) {
             $uploadmodel->file = UploadedFile::getInstance($uploadmodel, 'file');
             if ($uploadmodel->file && $uploadmodel->validate()) {
@@ -97,7 +114,6 @@ class SiteController extends Controller
             }
         }
         $cats = Category::find()->asArray()->where('id_par=0')->all();
-
         return $this->render('index', compact('uploadmodel', 'cats'));
     }
 
