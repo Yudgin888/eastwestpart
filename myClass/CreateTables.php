@@ -16,25 +16,10 @@ class CreateTables
                   `num` varchar(255) NOT NULL,
                   `info` longtext NOT NULL,
                   `id_par` int(11) NOT NULL DEFAULT 0,
+                  `ism` int(11) NOT NULL DEFAULT 0,
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();
-
-            /*$db->createCommand()->createTable('category', [
-                'id' => $this->primaryKey(),
-                'name' => $this->string()->notNull(),
-                'info' => $this->text(),
-                'id_par' => $this->integer()->notNull()->defaultValue(0),
-            ]);*/
-
-            /*$this->addForeignKey(
-                "fk_category_id",
-                "category",
-                "id_par",
-                "category",
-                "id",
-                "RESTRICT"
-            );*/
         }
         if ($db->getTableSchema('model', true) === null) {
             $sql = "
@@ -47,23 +32,21 @@ class CreateTables
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();
-
-            /*$db->createCommand()->createTable('model', [
-                'id' => $db->createCommand()->primaryKey(),
-                'name' => $this->string()->notNull(),
-                'parameters' => $this->text(),
-                'price' => $this->string(),
-                'id_category' => $this->integer()->notNull(),
-            ]);
-
-            $db->createCommand()->addForeignKey(
-                "fk_model_category_id",
-                "model",
-                "id_category",
-                "category",
-                "id",
-                "RESTRICT"
-            );*/
+        }
+        if ($db->getTableSchema('user', true) === null) {
+            $sql = "
+                CREATE TABLE `user` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `username` varchar(255) NOT NULL,
+                  `password` varchar(255) NOT NULL,
+                  `auth_key` varchar(255),
+                  `role` int(11) NOT NULL,
+                  `accessToken` varchar(255),
+                  PRIMARY KEY (`id`)
+                );";
+            $db->createCommand($sql)->execute();
+            $sql = "INSERT INTO `eastwestpart`.`user` (`username`, `password`, `auth_key`, `role`, `accessToken`) VALUES ('admin', 'pass', '', '1', '');";
+            $db->createCommand($sql)->execute();
         }
     }
 

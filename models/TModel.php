@@ -12,10 +12,11 @@ use yii\db\ActiveRecord;
 
 class TModel extends ActiveRecord
 {
-//    public $name;
-//    public $parameters;
-//    public $price;
-//    public $id_category;
+//`id` int(11) NOT NULL AUTO_INCREMENT,
+//`name` varchar(255) NOT NULL,
+//`parameters` longtext,
+//`price` varchar(255),
+//`id_category` int(11) NOT NULL,
 
     public static function tableName()
     {
@@ -28,13 +29,5 @@ class TModel extends ActiveRecord
         $this->parameters = $parameters;
         $this->price = $price;
         $this->id_category = $id_category;
-    }
-
-    public function rules()
-    {
-        return [
-            [['name', 'id_category'], 'required'],
-            [['parameters', 'price'], 'trim'],
-        ];
     }
 }

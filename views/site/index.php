@@ -2,62 +2,28 @@
 
 /* @var $this yii\web\View */
 
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-
-$this->title = 'My Yii Application';
+$this->title = 'Скачать КП';
 ?>
 <div class="site-index">
-
-    <?php
-    if(Yii::$app->session->hasFlash('success-load')):?>
-        <div class="alert alert-success alert-dismissible" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <?= Yii::$app->session->getFlash('success-load');?>
-        </div>
-    <?php endif;?>
-    <?php
-    if(Yii::$app->session->hasFlash('error-load')):?>
-        <div class="alert alert-danger alert-dismissible" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <?= Yii::$app->session->getFlash('error-load');?>
-        </div>
-    <?php endif;?>
-    <?php
-    if(Yii::$app->session->hasFlash('success-proc')):?>
-        <div class="alert alert-success alert-dismissible" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <?= Yii::$app->session->getFlash('success-proc');?>
-        </div>
-    <?php endif;?>
-    <?php
-    if(Yii::$app->session->hasFlash('error-proc')):?>
-        <div class="alert alert-danger alert-dismissible" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <?= Yii::$app->session->getFlash('error-proc');?>
-        </div>
-    <?php endif;?>
-
-
     <div class="body-content">
 
-        <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]) ?>
-        <?= $form->field($uploadmodel, 'file')->fileInput() ?>
-        <button>Отправить</button>
-        <?php ActiveForm::end() ?>
-
         <?php if(count($cats) > 0):?>
-        <div class="selects-block">
-            <select class="select-item-cat">
-                <option value="Выберите категорию" data-id="0" selected>Выберите категорию</option>
-                <?php foreach ($cats as $cat):
-                    $name = $cat['num'] . ' ' . $cat['name']?>
-                <option value="<?= $name?>" data-id="<?= $cat['id']?>"><?= $name?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+            <div class="selects-block">
+                <label for="cat-select">Выберите категорию товара</label>
+                <select id="cat-select" class="select-item-cat">
+                    <option value="Выберите категорию" data-ism="0" data-id="0" selected>Выберите категорию</option>
+                    <?php foreach ($cats as $cat):
+                        $name = $cat['num'] . ' ' . $cat['name']?>
+                    <option value="<?= $name?>" data-ism="<?= $cat['ism']?>" data-id="<?= $cat['id']?>"><?= $name?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="btn-block">
+                <button type="button" id="btn-view-mdl" class="btn btn-default" aria-label="Left Align">
+                    Смотреть модели
+                </button>
+            </div>
         <?php endif;?>
-
 
     </div>
 </div>

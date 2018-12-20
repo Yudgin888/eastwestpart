@@ -46,8 +46,11 @@ $config = [
         'db' => $db,
         'urlManager' => [
             'enablePrettyUrl' => true,  //включение ЧПУ
-            'showScriptName' => true,  //показывать ли имя скрипта (index.php)
+            'showScriptName' => false,  //показывать ли имя скрипта (index.php)
             'rules' => [                //правила роутинга
+                'model' => 'site/model',
+                'login' => 'site/login',
+                'settings' => 'site/settings',
             ],
         ],
     ],

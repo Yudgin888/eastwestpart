@@ -1,3 +1,42 @@
 .selects-block {
     margin: 50px;
 }
+
+.selects-block .select-item-cat {
+    text-align: center;
+    display: block;
+    margin: 10px;
+}
+
+.btn-block {
+    display: none;
+}
+
+.btn-load, .btn-load-price {
+    width: 100%;
+    height: 20px;
+    text-align: left;
+}
+
+.btn-load:hover, .btn-load-price:hover {
+    cursor: pointer;
+}
+
+.body-content hr {
+    border-top: dashed 1px;
+}
+
+.model-content .model-options, .model-content .model-delivery {
+    display: inline-block;
+    width: 45%;
+    margin: 30px 0;
+}
+
+.model-content .model-options label {
+    display: block;
+    width: 100%;
+}
+
+.city-delivery, .cost-delivery {
+    margin: 10px 15px;
+}

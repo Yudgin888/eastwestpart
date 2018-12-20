@@ -33,7 +33,8 @@ function parseArr($cat, $parent_id = 0){
     $name = trim($cat['name']);
     $info = isset($cat['info']) ? implode('\\n', $cat['info']) : '';
     $num = isset($cat['num']) ? str_replace('*', '', $cat['num']) : '';
-    $category = new \app\models\Category($name, $num, $info, $parent_id);
+    $ism = empty($cat['models']) ? 0 : 1;
+    $category = new \app\models\Category($name, $num, $info, $parent_id, $ism);
     if($category->save()){
         $id = Yii::$app->db->lastInsertID;
         if(isset($cat['models']) && count($cat['models']) > 0) {
@@ -81,15 +82,18 @@ function getSubCategories($cat, $parent_cat = '\*', $level = 1, &$i = 0){
             continue;
         }
 
-        if(!empty($str) && preg_match('/\*[0-9]./', $str)){
+        if(!empty($str) && preg_match('/\*[0-9][.]/', $str)){
             $matches = [];
-            preg_match_all('/[0-9]./', $str, $matches);
-            if(!empty($matches) && (count($matches[0]) < $level || count($matches[0]) > ($level + 1))){
-                if(!empty($curr_item)) {
-                    $result[] = $curr_item;
+            preg_match('/[*][0-9.]{1,}/', $str, $number);
+            if(!empty($number)) {
+                preg_match_all('/[0-9]{1,}[.]{1}/', $number['0'], $matches);
+                if (!empty($matches) && (count($matches[0]) < $level || count($matches[0]) > ($level + 1))) {
+                    if (!empty($curr_item)) {
+                        $result[] = $curr_item;
+                    }
+                    $i--;
+                    return $result;
                 }
-                $i--;
-                return $result;
             }
         }
 
