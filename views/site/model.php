@@ -7,14 +7,6 @@ $this->title = 'Создание КП | Выбор модели';
 <div class="site-index">
     <div class="body-content">
         <?php
-            $id = Yii::$app->request->get('id');
-            $models = \app\models\TModel::find()->asArray()->where('id_category=' . $id)->all();
-            $cats = \app\models\Category::find()->asArray()->where('id=' . $id)->all();
-            $breadcrumbs[] = $title = $cats['0']['name'];
-            while($cats['0']['id_par'] != 0){
-                $cats = \app\models\Category::find()->asArray()->where('id=' . $cats['0']['id_par'])->all();
-                $breadcrumbs[] = $cats['0']['name'];
-            }
             //var_dump($cats);
         ?>
         <ol class="breadcrumb">
@@ -23,19 +15,23 @@ $this->title = 'Создание КП | Выбор модели';
             <?php endforeach;?>
         </ol>
         <h1><?= $title?></h1>
-        <?php foreach ($models as $model):?>
+        <?php foreach ($models as $model):
+            $opt = $model['option'];?>
         <div class="model-item">
             <h2>- Модель <?= $model['name']?></h2>
-            <div class="btn-load"><b>КП</b> - Характеристики, базовая информация и перечень доступных опций.</div>
+            <div data-id="<?= $model['id']?>" class="btn-load"><b>КП</b> - Характеристики, базовая информация и перечень доступных опций.</div>
             <div class="model-content">
                 <div class="model-options">
                     <h2>Опции</h2>
-                    <label>
-                        <input type="checkbox" value="1" />  Название опции</label>
-                    <label>
-                        <input type="checkbox" value="1" />  Название опции</label>
-                    <label>
-                        <input type="checkbox" value="1" />  Название опции</label>
+                    <?php $count = 0; foreach ($opt as $item):?>
+                        <?if($item['basic'] == 0): $count++;?>
+                        <label>
+                            <input type="checkbox" value="<?= $item['name']?>" />  <?= $item['name']?> - $<?= $item['cost']?></label>
+                        <?php endif;?>
+                    <?php endforeach;?>
+                    <?php if($count == 0):?>
+                        <label>Нет доступных опций</label>
+                    <?php endif;?>
                 </div>
                 <div class="model-delivery">
                     <h2>Город доставки/<br>ближайший населенный пункт</h2>

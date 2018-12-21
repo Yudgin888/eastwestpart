@@ -21,9 +21,30 @@ $(document).ready(function() {
     });
 
     $('.btn-load').on('click', function(e){
-
+        var id = $(e.target).closest('.btn-load').data('id');
+        var url = "/viewpdf?id=" + id;
+        $(location).attr('href', url);
     });
+
+    $('.btn-user-remove').on('click', delUser);
 });
+
+function delUser(e){
+    var tr = $(e.target).closest('tr')[0];
+    var id = $(tr).data('id');
+    $.ajax({
+        url: '/site/settings',
+        data: {
+            name: 'delete-user',
+            id: id
+        },
+        type: 'POST',
+        success: function(){
+        },
+        error: function(){
+        }
+    });
+}
 
 function getSubCat(id, ism){
     if(ism === 1){

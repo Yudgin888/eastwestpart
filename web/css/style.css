@@ -40,3 +40,11 @@
 .city-delivery, .cost-delivery {
     margin: 10px 15px;
 }
+
+.setting-tab-item {
+    margin-top: 50px;
+}
+
+.div-btn-1 button {
+    font-size: 8px;
+}

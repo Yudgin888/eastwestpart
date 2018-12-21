@@ -2,6 +2,8 @@
 
 namespace app\myClass;
 
+use yii\db\Exception;
+
 class CreateTables
 {
     public static function up()
@@ -48,6 +50,18 @@ class CreateTables
             $sql = "INSERT INTO `eastwestpart`.`user` (`username`, `password`, `auth_key`, `role`, `accessToken`) VALUES ('admin', 'pass', '', '1', '');";
             $db->createCommand($sql)->execute();
         }
+        if ($db->getTableSchema('option', true) === null) {
+            $sql = "
+                CREATE TABLE `option` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `name` varchar(255) NOT NULL,
+                  `cost` varchar(255),
+                  `basic` int(11),
+                  `id_model` int(11) NOT NULL,
+                  PRIMARY KEY (`id`)
+                );";
+            $db->createCommand($sql)->execute();
+        }
     }
 
     public static function reset(){
@@ -70,6 +84,16 @@ class CreateTables
         if ($db->getTableSchema('category', true) !== null) {
             try {
                 $db->createCommand()->dropTable('category')->execute();
+            } catch (Exception $e){}
+        }
+    }
+
+    public static function downOptions()
+    {
+        $db = \Yii::$app->db;
+        if ($db->getTableSchema('option', true) !== null) {
+            try {
+                $db->createCommand()->dropTable('option')->execute();
             } catch (Exception $e){}
         }
     }

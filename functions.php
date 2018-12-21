@@ -16,6 +16,38 @@ function resetTable(){
     }
 }
 
+function parseCostFile($fileName){
+    try {
+        $data = \moonland\phpexcel\Excel::import($fileName, [
+            'setFirstRecordAsKeys' => false, // if you want to set the keys of record column with first record, if it not set, the header with use the alphabet column on excel.
+            'setIndexSheetByName' => true, // set this if your excel data with multiple worksheet, the index of array will be set with the sheet name. If this not set, the index will use numeric.
+        ]);
+        foreach ($data as $key => $value) {
+            $model_id = \app\models\TModel::find()->asArray()->where(["name" => $key])->all()[0]['id'];
+            \app\models\Option::deleteAll(['id_model' => $model_id]);
+            if (!empty($model_id)) {
+                $basic = 1;
+                for ($i = 3; $i < count($value) + 1; $i++) {
+                    $name = $value[$i]['A'];
+                    if (!empty($name)) {
+                        if (strpos($name, 'опции') !== false) {
+                            $basic = 0;
+                            continue;
+                        }
+                        $cost = $value[$i]['C'];
+                        $option = new \app\models\Option($name, $cost, $basic, $model_id);
+                        $option->save();
+                    }
+                }
+            }
+        }
+    } catch (Exception $ex){
+        return $ex->getMessage();
+    }
+    return true;
+}
+
+
 function loadPrice($fileName){
     resetTable();
     $cats = parsePrice($fileName);
@@ -134,4 +166,21 @@ function getSubCategories($cat, $parent_cat = '\*', $level = 1, &$i = 0){
     }
     $i--;
     return $result;
+}
+
+function CreateTree($cats, $sub = 0)
+{
+    $res = array();
+    foreach($cats as $cat)
+    {
+        if($sub == $cat['id_par'])
+        {
+            $b = CreateTree($cats, $cat['id']);
+            if(!empty($b)) {
+                $cat['childs'] = $b;
+            }
+            $res[] = $cat;
+        }
+    }
+    return $res;
 }

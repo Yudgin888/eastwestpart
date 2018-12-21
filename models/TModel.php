@@ -23,11 +23,23 @@ class TModel extends ActiveRecord
         return 'model';
     }
 
-    public function __construct($name, $parameters, $price, $id_category){
+    public function __construct($name = '', $parameters = '', $price = '', $id_category = 0){
         parent::__construct();
         $this->name = $name;
         $this->parameters = $parameters;
         $this->price = $price;
         $this->id_category = $id_category;
+    }
+
+    public function getOption(){
+        return $this->hasMany(Option::class, ['id_model' => 'id']);
+    }
+
+    public function rules()
+    {
+        return [
+            [['name', 'parameters'], 'trim'],
+            [['price', 'id_category'], 'safe'],
+        ];
     }
 }
