@@ -8,7 +8,6 @@
 
 namespace app\models;
 
-
 use yii\base\Model;
 use yii\db\Exception;
 use yii\helpers\FileHelper;
@@ -20,7 +19,7 @@ class UploadFormCostFiles extends Model
     public function rules()
     {
         return [
-            [['files'], 'file', 'skipOnEmpty' => false, 'extensions' => 'xlsx', 'maxFiles' => 4],
+            [['files'], 'file', 'skipOnEmpty' => false, 'extensions' => 'xlsx', 'maxFiles' => 0],
         ];
     }
 
@@ -28,7 +27,7 @@ class UploadFormCostFiles extends Model
     {
         $result['code'] = 'success';
         if ($this->validate()) {
-            $path = \Yii::getAlias('@app/uploads/costfiles');
+            $path = \Yii::getAlias('@app/web/uploads/costfiles');
             if (!file_exists($path)) {
                 if(!FileHelper::createDirectory($path)){
                     $result['code'] = 'error';
@@ -38,7 +37,12 @@ class UploadFormCostFiles extends Model
             }
             foreach ($this->files as $file) {
                 try {
-                    $file->saveAs($path . '/' . $file->baseName . '.' . $file->extension);
+                    $full_path = $path . '/' . $file->baseName . '_' . time() . '.' . $file->extension;
+                    $file->saveAs($full_path);
+                    $result['files'][] = [
+                        'path' => $full_path,
+                        'file_name' => $file->baseName . '.' . $file->extension,
+                    ];
                 }catch (Exception $e){
                     $result['code'] = 'error';
                     $result['mess'] = 'Не удалось загрузить файлы!';

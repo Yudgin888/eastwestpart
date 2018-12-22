@@ -17,6 +17,7 @@ function resetTable(){
 }
 
 function parseCostFile($fileName){
+    $option_count = 0;
     try {
         $data = \moonland\phpexcel\Excel::import($fileName, [
             'setFirstRecordAsKeys' => false, // if you want to set the keys of record column with first record, if it not set, the header with use the alphabet column on excel.
@@ -24,7 +25,9 @@ function parseCostFile($fileName){
         ]);
         foreach ($data as $key => $value) {
             $model_id = \app\models\TModel::find()->asArray()->where(["name" => $key])->all()[0]['id'];
-            \app\models\Option::deleteAll(['id_model' => $model_id]);
+            if(\app\models\Option::deleteAll(['id_model' => $model_id])){
+                $option_count -= 1;
+            }
             if (!empty($model_id)) {
                 $basic = 1;
                 for ($i = 3; $i < count($value) + 1; $i++) {
@@ -37,37 +40,50 @@ function parseCostFile($fileName){
                         $cost = $value[$i]['C'];
                         $option = new \app\models\Option($name, $cost, $basic, $model_id);
                         $option->save();
+                        $option_count++;
                     }
                 }
             }
         }
     } catch (Exception $ex){
-        return $ex->getMessage();
+        return [
+            'code' => 'error',
+            'mess' => $ex->getMessage(),
+        ];
     }
-    return true;
+    return [
+        'code' => 'success',
+        'mess' => $option_count,
+    ];
 }
 
 
 function loadPrice($fileName){
     resetTable();
     $cats = parsePrice($fileName);
+    $cats_count = 0;
+    $mdl_count = 0;
     foreach ($cats as $cat) {
         if(!empty($cat)) {
-            if (!parseArr($cat[0])) {
+            if (!parseArr($cat[0], 0, $cats_count, $mdl_count)) {
                 return false;
             }
         }
     }
-    return true;
+    return [
+        'cats_count' => $cats_count,
+        'mdl_count' => $mdl_count,
+    ];
 }
 
-function parseArr($cat, $parent_id = 0){
+function parseArr($cat, $parent_id = 0, &$cats_count, &$mdl_count){
     $name = trim($cat['name']);
     $info = isset($cat['info']) ? implode('\\n', $cat['info']) : '';
     $num = isset($cat['num']) ? str_replace('*', '', $cat['num']) : '';
     $ism = empty($cat['models']) ? 0 : 1;
     $category = new \app\models\Category($name, $num, $info, $parent_id, $ism);
     if($category->save()){
+        $cats_count++;
         $id = Yii::$app->db->lastInsertID;
         if(isset($cat['models']) && count($cat['models']) > 0) {
             foreach ($cat['models'] as $model){
@@ -76,11 +92,12 @@ function parseArr($cat, $parent_id = 0){
                 $price = $model['2'];
                 $model = new \app\models\TModel($name, $parameters, $price, $id);
                 if(!$model->save()) return false;
+                $mdl_count++;
             }
         }
         if(isset($cat['child_cats']) && count($cat['child_cats']) > 0){
             foreach ($cat['child_cats'] as $child) {
-                parseArr($child, $id);
+                parseArr($child, $id, $cats_count, $mdl_count);
             }
         }
         return true;
@@ -151,7 +168,7 @@ function getSubCategories($cat, $parent_cat = '\*', $level = 1, &$i = 0){
             });
             if(count($table) > 1){
                 $table = array_values($table);
-                if(isset($curr_item['models'])){
+                if(isset($curr_item['models']) && $table['0'] != 'Модель'){
                     $curr_item['models'][] = $table;
                 } else {
                     $curr_item['models'] = [];
@@ -183,4 +200,31 @@ function CreateTree($cats, $sub = 0)
         }
     }
     return $res;
+}
+
+/**
+ * Функция возвращает окончание для множественного числа слова на основании числа и массива окончаний
+ * param  $number Integer Число на основе которого нужно сформировать окончание
+ * param  $endingsArray  Array Массив слов или окончаний для чисел (1, 4, 5),
+ *         например array('яблоко', 'яблока', 'яблок')
+ * return String
+ */
+function getNumEnding($number, $endingArray)
+{
+    $number = $number % 100;
+    if ($number >= 11 && $number <= 19) {
+        $ending = $endingArray[2];
+    }
+    else {
+        $i = $number % 10;
+        switch ($i)
+        {
+            case (1): $ending = $endingArray[0]; break;
+            case (2):
+            case (3):
+            case (4): $ending = $endingArray[1]; break;
+            default: $ending = $endingArray[2];
+        }
+    }
+    return $ending;
 }

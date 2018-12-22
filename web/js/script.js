@@ -20,13 +20,25 @@ $(document).ready(function() {
         $(location).attr('href', url);
     });
 
-    $('.btn-load').on('click', function(e){
+    /*$('.btn-load').on('click', function(e){
         var id = $(e.target).closest('.btn-load').data('id');
         var url = "/viewpdf?id=" + id;
         $(location).attr('href', url);
-    });
+    });*/
 
     $('.btn-user-remove').on('click', delUser);
+
+    $('.nav-link-sort').on('click', function(e){
+        $('.nav-link-sort').removeClass('active');
+        $(e.target).addClass('active');
+        var iso = $(e.target).data('iso');
+        if(iso === 2){
+            $('.model-item').css('display', 'block');
+        } else {
+            $('.model-item').css('display', 'none');
+            $('.model-item[data-iso=' + iso + ']').css('display', 'block');
+        }
+    });
 });
 
 function delUser(e){

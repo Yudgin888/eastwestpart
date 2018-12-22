@@ -31,6 +31,7 @@ class CreateTables
                   `parameters` longtext,
                   `price` varchar(255),
                   `id_category` int(11) NOT NULL,
+                  `offer_path` longtext,
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();

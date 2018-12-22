@@ -9,6 +9,7 @@ $this->title = 'Создание КП | Настройки';
         '2' => 'success-del-user',
         '3' => 'success-add-user',
         '4' => 'success-parse-cost',
+        '5' => 'success-parse-cost-count',
     ];
     $error = [
         '0' => 'error-load',
@@ -45,5 +46,6 @@ $this->title = 'Создание КП | Настройки';
             <li data-tag="upload-price" class="<?= ($act_tab == 'upload-price') ? 'active' : ''?>"><a href="?tab=upload-price">Загрузка прайса</a></li>
             <li data-tag="users" class="<?= ($act_tab == 'users') ? 'active' : ''?>"><a href="?tab=users">Пользователи</a></li>
             <li data-tag="upload-cost" class="<?= ($act_tab == 'upload-cost') ? 'active' : ''?>"><a href="?tab=upload-cost">Загрузка опций</a></li>
+            <li data-tag="upload-kpm" class="<?= ($act_tab == 'upload-kpm') ? 'active' : ''?>"><a href="?tab=upload-kpm">Загрузка КП моделей</a></li>
         </ul>
 

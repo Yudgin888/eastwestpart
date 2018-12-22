@@ -23,6 +23,10 @@ $this->title = 'Скачать КП';
                     Смотреть модели
                 </button>
             </div>
+        <?php else:?>
+            <div class="selects-block">
+                <label for="cat-select">Список категорий пуст!</label>
+            </div>
         <?php endif;?>
 
     </div>

@@ -19,17 +19,20 @@ $this->title = 'Создание КП | Выбор модели';
             $opt = $model['option'];?>
         <div class="model-item">
             <h2>- Модель <?= $model['name']?></h2>
-            <div data-id="<?= $model['id']?>" class="btn-load"><b>КП</b> - Характеристики, базовая информация и перечень доступных опций.</div>
+            <?php if(!empty($model['offer_path'])):?>
+                <a href="<?= '/' . $model['offer_path']?>" class="btn-open-offer" target="_blank"><b>КП</b> - Характеристики, базовая информация и перечень доступных опций.</a>
+            <?php else:?>
+                <div class="btn-open-offer">Для модели не загружен pdf-файл</div>
+            <?php endif;?>
+
             <div class="model-content">
                 <div class="model-options">
                     <h2>Опции</h2>
-                    <?php $count = 0; foreach ($opt as $item):?>
-                        <?if($item['basic'] == 0): $count++;?>
+                    <?php foreach ($opt as $item):?>
                         <label>
                             <input type="checkbox" value="<?= $item['name']?>" />  <?= $item['name']?> - $<?= $item['cost']?></label>
-                        <?php endif;?>
                     <?php endforeach;?>
-                    <?php if($count == 0):?>
+                    <?php if(count($opt) == 0):?>
                         <label>Нет доступных опций</label>
                     <?php endif;?>
                 </div>

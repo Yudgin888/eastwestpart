@@ -17,18 +17,20 @@ class TModel extends ActiveRecord
 //`parameters` longtext,
 //`price` varchar(255),
 //`id_category` int(11) NOT NULL,
+//`offer_path` longtext,
 
     public static function tableName()
     {
         return 'model';
     }
 
-    public function __construct($name = '', $parameters = '', $price = '', $id_category = 0){
+    public function __construct($name = '', $parameters = '', $price = '', $id_category = 0, $offer_path = ''){
         parent::__construct();
         $this->name = $name;
         $this->parameters = $parameters;
         $this->price = $price;
         $this->id_category = $id_category;
+        $this->offer_path = $offer_path;
     }
 
     public function getOption(){
@@ -39,7 +41,7 @@ class TModel extends ActiveRecord
     {
         return [
             [['name', 'parameters'], 'trim'],
-            [['price', 'id_category'], 'safe'],
+            [['price', 'id_category', 'offer_path'], 'safe'],
         ];
     }
 }

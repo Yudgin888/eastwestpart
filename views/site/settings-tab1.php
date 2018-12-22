@@ -4,6 +4,8 @@
 ?>
 
 <div class="setting-tab-item upload-price">
+    <p>Категорий в базе данных: <?= $count_cat?></p>
+    <p>Моделей в базе данных: <?= $count_mod?></p><br>
     <?php $form = ActiveForm::begin([
             'options' => ['enctype' => 'multipart/form-data'],
     ]) ?>

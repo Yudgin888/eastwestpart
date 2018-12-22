@@ -3,8 +3,11 @@
 namespace app\controllers;
 
 use app\models\Category;
+use app\models\Option;
 use app\models\TModel;
 use app\models\UploadFormCostFiles;
+use app\models\UploadFormKM;
+use app\models\UploadOffers;
 use app\models\UserForm;
 use app\models\Users;
 use Yii;
@@ -111,11 +114,12 @@ class SiteController extends Controller
         if(Yii::$app->user->isGuest){
             return $this->redirect('/login');
         }
-        if(empty(Yii::$app->request->get('id'))){
+        $id = Yii::$app->request->get('id');
+        if(empty($id)){
             return $this->goBack();
         }
-        $id = Yii::$app->request->get('id');
-        return $this->render('viewpdf', compact('id'));
+        $model = TModel::find()->asArray()->where('id=' . $id)->with('option')->all();
+        return $this->render('viewpdf', compact('model'));
     }
 
     public function actionIndex()
@@ -139,7 +143,7 @@ class SiteController extends Controller
         $id = Yii::$app->request->get('id');
         $models = TModel::find()->asArray()->where('id_category=' . $id)->with('option')->all();
         $cats = Category::find()->asArray()->where('id=' . $id)->all();
-        $breadcrumbs[] = $title = $cats['0']['name'];
+        $breadcrumbs[] = $cats['0']['name'];
         while($cats['0']['id_par'] != 0){
             $cats = Category::find()->asArray()->where('id=' . $cats['0']['id_par'])->all();
             $breadcrumbs[] = $cats['0']['name'];
@@ -153,18 +157,21 @@ class SiteController extends Controller
         if (Yii::$app->request->isPost) {
             $uploadmodel->file = UploadedFile::getInstance($uploadmodel, 'file');
             if ($uploadmodel->file && $uploadmodel->validate()) {
-                $path = Yii::getAlias('@app/uploads');
+                $path = Yii::getAlias('@app/web/uploads/prices');
                 if (!file_exists($path)) {
                     FileHelper::createDirectory($path);
                 }
-                $filename = $path . '/' . $uploadmodel->file->baseName . '.' . $uploadmodel->file->extension;
+                $filename = $path . '/' . $uploadmodel->file->baseName . '_' . time() . '.' . $uploadmodel->file->extension;
                 if ($uploadmodel->file->saveAs($filename)) {
-                    Yii::$app->session->setFlash('success-load', 'Файл успешно загружен!');
+                    Yii::$app->session->setFlash('success-load', 'Файл ' . $uploadmodel->file->baseName . '.' . $uploadmodel->file->extension . ' успешно загружен!');
                 } else {
-                    Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл!');
+                    Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл: ' . $uploadmodel->file->baseName . '.' . $uploadmodel->file->extension);
                 }
-                if (loadPrice($filename)) {
-                    Yii::$app->session->setFlash('success-proc', 'Файл успешно обработан!');
+                $result = loadPrice($filename);
+                if ($result) {
+
+                    Yii::$app->session->setFlash('success-proc', 'Файл успешно обработан! Добавлено: ' . $result['cats_count'] . ' ' . getNumEnding($result['cats_count'], ['категория', 'категории', 'категорий'])
+                        . ', ' . $result['mdl_count'] . ' ' . getNumEnding($result['mdl_count'], ['модель', 'модели', 'моделей']));
                 } else {
                     Yii::$app->session->setFlash('error-proc', 'Не удалось обработать файл!');
                 }
@@ -172,7 +179,9 @@ class SiteController extends Controller
                 return $this->redirect('/settings');
             }
         }
-        return $this->render('settings-tab1', compact('uploadmodel'));
+        $count_cat = Category::find()->count();
+        $count_mod = TModel::find()->count();
+        return $this->render('settings-tab1', compact('uploadmodel', 'count_cat', 'count_mod'));
     }
 
     private function settingTab2()
@@ -183,7 +192,7 @@ class SiteController extends Controller
         if(isset($post['UserForm'])) {
             if ($usermodel->load($post) && $usermodel->registration()) {
                 Yii::$app->session->setFlash('success-add-user', 'Пользователь добавлен!');
-                return $this->refresh();
+                return $this->redirect('/settings?tab=users');
             }
         }
         return $this->render('settings-tab2', compact('users', 'usermodel'));
@@ -203,13 +212,14 @@ class SiteController extends Controller
             }
             $err_mess = [];
             $succ_mess = [];
-            foreach ($model->files as $item){
-                $path = \Yii::getAlias('@app/uploads/costfiles/' . $item->name);
-                $res = parseCostFile($path);
-                if($res !== true){
-                    $err_mess[] = $item->name;
+            $opt_count = 0;
+            foreach ($result['files'] as $item){
+                $res = parseCostFile($item['path']);
+                if($res['code'] === 'success'){
+                    $succ_mess[] = $item['file_name'];
+                    $opt_count += $res['mess'];
                 } else {
-                    $succ_mess[] = $item->name;
+                    $err_mess[] = $item['file_name'];
                 }
             }
             if(!empty($err_mess)) {
@@ -217,11 +227,63 @@ class SiteController extends Controller
             }
             if(!empty($succ_mess)) {
                 Yii::$app->session->setFlash('success-parse-cost', 'Обработанные файлы: ' . implode(', ', $succ_mess));
+                Yii::$app->session->setFlash('success-parse-cost-count', 'Добавлено опций: ' . $opt_count);
             }
             $model = new UploadFormCostFiles();
             return $this->refresh();
         }
-        return $this->render('settings-tab3', compact('model'));
+        $count_opt = Option::find()->count();
+        return $this->render('settings-tab3', compact('model', 'count_opt'));
+    }
+
+    private function settingTab4()
+    {
+        $uploadmodelkm = new UploadFormKM();
+        $multiupload = new UploadOffers();
+        if (Yii::$app->request->isPost) {
+            $post = Yii::$app->request->post();
+            if(isset($post['UploadFormKM'])) {
+                $uploadmodelkm->file = UploadedFile::getInstance($uploadmodelkm, 'file');
+                if ($uploadmodelkm->file && $uploadmodelkm->validate()) {
+                    $model_id = $post['UploadFormKM']['hidden1'];
+                    $model = TModel::findOne(['id' => $model_id]);
+                    if ($model) {
+                        $path = Yii::getAlias('@app/web/uploads/offers/' . $model->name);
+                        if (!file_exists($path)) {
+                            FileHelper::createDirectory($path);
+                        }
+                        $file_name = $uploadmodelkm->file->baseName . '_' . time() . '.' . $uploadmodelkm->file->extension;
+                        $filepath = $path . '/' . $file_name;
+                        if ($uploadmodelkm->file->saveAs($filepath)) {
+                            Yii::$app->session->setFlash('success-load', 'Файл ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension . ' успешно загружен!');
+                            $model->offer_path = 'uploads/offers/' . $model->name . '/' . $file_name;
+                            $model->save();
+                        } else {
+                            Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл: ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension);
+                        }
+                        $uploadmodelkm = new UploadFormKM();
+                    } else {
+                        Yii::$app->session->setFlash('error-load', 'Модель ' . $model_id . ' не найдена!');
+                    }
+                    return $this->redirect('/settings?tab=upload-kpm');
+                } else {
+                    Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл: ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension);
+                    return $this->redirect('/settings?tab=upload-kpm');
+                }
+            } else if(isset($post['UploadOffers'])) {
+                $multiupload->files = UploadedFile::getInstances($multiupload, 'files');
+                $result = $multiupload->upload();
+                if (count($result['success']) > 0) {
+                    Yii::$app->session->setFlash('success-load', 'Файлы успешно загружены: ' . implode(', ', $result['success']));
+                } else {
+                    Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файлы: ' . implode(', ', $result['error']));
+                }
+                $multiupload = new UploadOffers();
+                return $this->redirect('/settings?tab=upload-kpm');
+            }
+        }
+        $models = TModel::find()->asArray()->all();
+        return $this->render('settings-tab4', compact('models', 'uploadmodelkm', 'multiupload'));
     }
 
     public function actionSettings()
@@ -245,6 +307,8 @@ class SiteController extends Controller
             return $this->settingTab2();
         } elseif($act_tab == 'upload-cost'){
             return $this->settingTab3();
+        } elseif($act_tab == 'upload-kpm') {
+            return $this->settingTab4();
         } else {
             return $this->goHome();
         }

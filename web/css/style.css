@@ -26,9 +26,16 @@
     border-top: dashed 1px;
 }
 
+.model-content .model-options {
+    width: 55%;
+}
+
+.model-content .model-delivery{
+    width: 40%;
+}
+
 .model-content .model-options, .model-content .model-delivery {
     display: inline-block;
-    width: 45%;
     margin: 30px 0;
 }
 
@@ -47,4 +54,18 @@
 
 .div-btn-1 button {
     font-size: 8px;
+}
+
+.model-content .model-options, .model-content .model-delivery {
+    height: 100%;
+    vertical-align: top;
+}
+
+.upload-offer {
+    margin-top: 20px;
+}
+
+.setting-tab-item .nav-link-sort.active {
+    background-color: #337ab7;
+    color: white;
 }
