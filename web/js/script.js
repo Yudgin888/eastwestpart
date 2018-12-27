@@ -20,11 +20,47 @@ $(document).ready(function() {
         $(location).attr('href', url);
     });
 
-    /*$('.btn-load').on('click', function(e){
-        var id = $(e.target).closest('.btn-load').data('id');
-        var url = "/viewpdf?id=" + id;
-        $(location).attr('href', url);
-    });*/
+    $('.btn-load-price').on('click', function(e){
+        var model = $(e.target).closest('.model-item');
+        var model_id = $(model).data('id');
+        var options = $(model).find('input:checkbox:checked');
+        var options_id = [];
+        for(var i = 0; i < options.length; i++){
+            options_id.push($(options[i]).data('id'));
+        }
+        var city = $(model).find('.city-input').val();
+        var cost = $(model).find('.cost-delivery input').val();
+        var data = {
+            'model_id': model_id,
+            'options_id': options_id,
+            'city': city,
+            'cost': cost
+        };
+        $.post({
+            type: 'POST',
+            url: "/viewpdf?id=" + model_id,
+            data: data,
+            success: function(e){
+            }
+        });
+    });
+
+    $('.btn-open-offer').on('click', function(e){
+        var model = $(e.target).closest('.model-item');
+        var model_id = $(model).data('id');
+        var data = {
+            'model_id': model_id
+        };
+        $.post({
+            type: 'POST',
+            url: "/viewpdf?id=" + model_id,
+            data: data,
+            success: function(e){
+                var WinId = window.open('', 'newwin', 'width=600,height=800');
+                window.open(e, 'window name', 'window settings');
+            }
+        });
+    });
 
     $('.btn-user-remove').on('click', delUser);
 
@@ -39,7 +75,33 @@ $(document).ready(function() {
             $('.model-item[data-iso=' + iso + ']').css('display', 'block');
         }
     });
+
+    //checkAvailableBtnLoadPrice();
+
+
 });
+
+function isNumberKey(evt) {
+    var charCode = (evt.which) ? evt.which : event.keyCode
+    if ((charCode >= 48 && charCode <= 57) || (charCode === 46 && $(evt.target).val().indexOf('.') === -1 && $(evt.target).val().length > 0)) {
+        return true;
+    }
+    return false;
+};
+
+function checkAvailableBtnLoadPrice(){
+    var models = $('.model-item');
+
+    for(var i = 0; i < models.length; i++){
+        var check = $(models[i]).find('.model-options input:checkbox:checked').length;
+
+        if(check > 0){
+            $(models[i]).find('.btn-load-price').css('disabled', 'enabled');
+        } else {
+            $(models[i]).find('.btn-load-price').css('disabled', 'disabled');
+        }
+    }
+}
 
 function delUser(e){
     var tr = $(e.target).closest('tr')[0];

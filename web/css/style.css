@@ -18,7 +18,7 @@
     text-align: left;
 }
 
-.btn-load:hover, .btn-load-price:hover {
+.btn-open-offer:hover, .btn-load-price:hover, .btn-no-basic-pdf:hover {
     cursor: pointer;
 }
 
@@ -68,4 +68,30 @@
 .setting-tab-item .nav-link-sort.active {
     background-color: #337ab7;
     color: white;
+}
+
+.body-content.main-page {
+    text-align: center;
+}
+
+.main-page-section {
+    display: inline-block;
+    width: 70%;
+}
+
+.selects-block label, .selects-block select{
+    width: 100%;
+    text-align: left;
+}
+
+.model-item .btn-load-price, .model-item .btn-open-offer {
+    height: 50px;
+    width: 350px;
+    vertical-align: middle;
+    padding: 5px;
+}
+
+.model-item .btn-load-price p, .model-item .btn-open-offer p {
+    height: 100%;
+    width: 100%;
 }

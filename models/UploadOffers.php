@@ -28,9 +28,10 @@ class UploadOffers extends Model
 
     public function upload()
     {
-        $result[] = [
+        $result = [
             'success' => [],
-            'error' => [],
+            'error1' => [],
+            'error2' => [],
         ];
         if ($this->validate()) {
             foreach ($this->files as $file) {
@@ -48,17 +49,17 @@ class UploadOffers extends Model
                     $model = TModel::findOne(['name' => $file->baseName]);
                     if($model) {
                         $model->offer_path = $path_db;
-                        $model->save();
+                        $model->update();
                         $result['success'][] = $file->baseName . '.' . $file->extension;
                     } else {
-
+                        $result['error2'][] = $file->baseName . '.' . $file->extension;
                     }
                 }catch (Exception $e){
-                    $result['error'][] = $file->baseName . '.' . $file->extension;
+                    $result['error1'][] = $file->baseName . '.' . $file->extension;
                 }
             }
         } else {
-            $result['error'][] = 'Файлы не были загружены!';
+            $result['error1'][] = 'Файлы не были загружены!';
         }
         return $result;
     }

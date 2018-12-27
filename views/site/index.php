@@ -5,8 +5,8 @@
 $this->title = 'Скачать КП';
 ?>
 <div class="site-index">
-    <div class="body-content">
-
+    <div class="body-content main-page">
+        <div class="main-page-section">
         <?php if(count($cats) > 0):?>
             <div class="selects-block">
                 <label for="cat-select">Выберите категорию товара</label>
@@ -28,6 +28,6 @@ $this->title = 'Скачать КП';
                 <label for="cat-select">Список категорий пуст!</label>
             </div>
         <?php endif;?>
-
+        </div>
     </div>
 </div>

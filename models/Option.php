@@ -24,7 +24,7 @@ class Option extends ActiveRecord
         return 'option';
     }
 
-    public function __construct($name, $cost, $basic, $id_model){
+    public function __construct($name = '', $cost = '', $basic = '', $id_model = ''){
         parent::__construct();
         $this->name = $name;
         $this->cost = $cost;

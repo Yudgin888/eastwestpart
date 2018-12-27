@@ -115,17 +115,60 @@ class SiteController extends Controller
         if(Yii::$app->user->isGuest){
             return $this->redirect('/login');
         }
-        $id = Yii::$app->request->get('id');
+
+        $post = Yii::$app->request->post();
+        if(!empty($post) && isset($post['model_id'])){
+            $id = $post['model_id'];
+        } else {
+            $id = Yii::$app->request->get('id');
+        }
         if(empty($id)){
             return $this->goBack();
         }
-        $model = TModel::find()->asArray()->where('id=' . $id)->with('option')->all();
-        return $this->render('viewpdf', compact('model'));
+        $options_id = isset($post['options_id']) ? $post['options_id'] : [];
+        $city = isset($post['city']) ? $post['city'] : '';
+        $cost = isset($post['cost']) ? $post['cost'] : '';
+        $htmlPage = $this->createOptionsPage($id, $options_id, $city, $cost);
+        $tmp_path = Yii::getAlias('@app/tmp');
+        if (!file_exists($tmp_path)) {
+            FileHelper::createDirectory($tmp_path);
+        }
+        $tmp_path .= '/pdf_' . time() . '.pdf';
+        PDFHandler::createPDFFile($htmlPage, $tmp_path);
+        $model = TModel::find()->asArray()->where('id=' . $id)->all()[0];
+        $basic_pdf = Yii::getAlias('@app/web/') . $model['offer_path'];
+        $files = [
+            '0' => $basic_pdf,
+            '1' => $tmp_path,
+        ];
+        $pathResult = Yii::getAlias('@app/tmp/resultmerge');
+        if (!file_exists($pathResult)) {
+            FileHelper::createDirectory($pathResult);
+        }
+        $fileName = '/tmp/resultmerge/tmp_1545921568.pdf';
+        return PDFHandler::mergePDF($files, $pathResult . '/tmp_' . time() . '.pdf');
+        return $fileName;
+
+
+    }
+
+    private function createOptionsPage($id, $options_id, $city, $cost){
+        if(!empty($options_id)) {
+            $model = TModel::find()->asArray()->where('id=' . $id)->all();
+            return $this->render('viewpdfopt', compact('model', 'city', 'cost'));
+        } else {
+            //$model = TModel::find()->asArray()->where('id=' . $id)->all();
+            $options = Option::find()->asArray()->where('id_model=' . $id)->all();
+            usort($options, function($arr1, $arr2){
+                return $arr2['basic'] - $arr1['basic'];
+            });
+            return $this->renderAjax('viewpdfnoopt', compact('options', 'city', 'cost'));
+        }
     }
 
     public function actionIndex()
     {
-        if(Yii::$app->user->isGuest){
+        if(Yii::$app->user->isGuest) {
             return $this->redirect('/login');
         }
         if (Yii::$app->request->isAjax) {
@@ -248,6 +291,7 @@ class SiteController extends Controller
                 if ($uploadmodelkm->file && $uploadmodelkm->validate()) {
                     $model_id = $post['UploadFormKM']['hidden1'];
                     $model = TModel::findOne(['id' => $model_id]);
+                    //$model = TModel::find()->where('id=' . $model_id)->with('option')->all();
                     if ($model) {
                         $path = Yii::getAlias('@app/web/uploads/offers/' . $model->name);
                         if (!file_exists($path)) {
@@ -256,10 +300,9 @@ class SiteController extends Controller
                         $file_name = $uploadmodelkm->file->baseName . '_' . time() . '.' . $uploadmodelkm->file->extension;
                         $filepath = $path . '/' . $file_name;
                         if ($uploadmodelkm->file->saveAs($filepath)) {
-                            Yii::$app->session->setFlash('success-load', 'Файл ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension . ' успешно загружен!');
                             $model->offer_path = 'uploads/offers/' . $model->name . '/' . $file_name;
-                            $model->save();
-                            pdfToHtml($path . '/' . $file_name);
+                            $model->update();
+                            Yii::$app->session->setFlash('success-load', 'Файл ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension . ' успешно загружен!');
                         } else {
                             Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл: ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension);
                         }
@@ -277,8 +320,12 @@ class SiteController extends Controller
                 $result = $multiupload->upload();
                 if (count($result['success']) > 0) {
                     Yii::$app->session->setFlash('success-load', 'Файлы успешно загружены: ' . implode(', ', $result['success']));
-                } else {
-                    Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файлы: ' . implode(', ', $result['error']));
+                }
+                if(count($result['error1']) > 0){
+                    Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файлы: ' . implode(', ', $result['error1']));
+                }
+                if(count($result['error2']) > 0){
+                    Yii::$app->session->setFlash('error-load', 'Не были найдены соответствующие модели: ' . implode(', ', $result['error2']));
                 }
                 $multiupload = new UploadOffers();
                 return $this->redirect('/settings?tab=upload-kpm');
