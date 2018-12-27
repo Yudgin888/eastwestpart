@@ -18,7 +18,14 @@
         "yiisoft/yii2": "~2.0.14",
         "yiisoft/yii2-bootstrap": "~2.0.0",
         "yiisoft/yii2-swiftmailer": "~2.0.0",
-        "moonlandsoft/yii2-phpexcel": "*"
+        "moonlandsoft/yii2-phpexcel": "*",
+        "phpoffice/phpspreadsheet": "^1.5",
+        "gufy/pdftohtml-php": "~2",
+        "setasign/fpdi-fpdf": "2.1",
+        "tecnickcom/tc-lib-pdf": "dev-master",
+        "dompdf/dompdf": "^0.8.3",
+        "setasign/fpdi-tcpdf": "^2.0",
+        "setasign/fpdi-tfpdf": "^2.1"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",
@@ -64,6 +71,10 @@
         {
             "type": "composer",
             "url": "https://asset-packagist.org"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:tecnickcom/tc-lib-pdf"
         }
     ]
 }

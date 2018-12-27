@@ -12,6 +12,8 @@ use yii\base\Model;
 use yii\db\Exception;
 use yii\helpers\FileHelper;
 
+//Класс загрузки опций
+
 class UploadFormCostFiles extends Model
 {
     public $files;

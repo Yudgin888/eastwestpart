@@ -44,7 +44,7 @@ include 'settings-header.php';
                             'enctype' => 'multipart/form-data',
                         ],
                     ]) ?>
-                    <?= $form->field($uploadmodelkm, 'file')->fileInput()->label('Загрузка коммерческого предложения (файлы pdf): ') ?>
+                    <?= $form->field($uploadmodelkm, 'file')->fileInput()->label('Загрузка коммерческого предложения (файл pdf): ') ?>
                     <?= $form->field($uploadmodelkm, 'hidden1')->hiddenInput(['value' => $model['id']])->label(false); ?>
                     <button>Отправить</button>
                     <?php ActiveForm::end() ?>

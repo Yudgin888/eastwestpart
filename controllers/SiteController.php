@@ -10,6 +10,7 @@ use app\models\UploadFormKM;
 use app\models\UploadOffers;
 use app\models\UserForm;
 use app\models\Users;
+use app\myClass\PDFHandler;
 use Yii;
 use yii\filters\AccessControl;
 use yii\helpers\FileHelper;
@@ -258,6 +259,7 @@ class SiteController extends Controller
                             Yii::$app->session->setFlash('success-load', 'Файл ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension . ' успешно загружен!');
                             $model->offer_path = 'uploads/offers/' . $model->name . '/' . $file_name;
                             $model->save();
+                            pdfToHtml($path . '/' . $file_name);
                         } else {
                             Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл: ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension);
                         }

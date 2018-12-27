@@ -13,6 +13,8 @@ use yii\base\Model;
 use yii\db\Exception;
 use yii\helpers\FileHelper;
 
+//Класс множественной загрузки КМ для моделей
+
 class UploadOffers extends Model
 {
     public $files;

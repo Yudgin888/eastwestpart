@@ -11,6 +11,8 @@ namespace app\models;
 
 use yii\base\Model;
 
+//класс загрузки КМ для модели
+
 class UploadFormKM extends Model
 {
     public $file;

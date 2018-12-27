@@ -1,6 +1,45 @@
 <?php
 
+//include 'vendor/autoload.php';
+use setasign\Fpdi\Fpdi;
+use setasign\Fpdi\PdfReader;
+
+
 use app\myClass\CreateTables;
+
+
+include 'vendor/pdfmerger/PDFMerger.php';
+
+
+function pdfToHtml($fileName){
+
+
+    $pdf = new Fpdi();
+    $pageCount = $pdf->setSourceFile($fileName);
+    $pageId = $pdf->importPage(1, PdfReader\PageBoundaries::MEDIA_BOX);
+    $pdf->addPage();
+    $pdf->useImportedPage($pageId);
+
+    $path = __DIR__ . '/1.pdf';
+    $pdf->Output("F", $path);
+
+    $pdf = new Fpdi();
+    $pageCount = $pdf->setSourceFile($fileName);
+    $pageId = $pdf->importPage(2, PdfReader\PageBoundaries::MEDIA_BOX);
+    $pdf->addPage();
+    $pdf->useImportedPage($pageId);
+
+    $pdf->Output("F", __DIR__ . '/2.pdf');
+
+
+    $pdf = new \PDFMerger\PDFMerger();
+
+    //REPLACE 'file' WITH 'browser', 'download', 'string', or 'file' for output options
+    //You do not need to give a file path for browser, string, or download - just the name.
+    $pdf->addPDF(__DIR__ . '/1.pdf', 'all')
+        ->addPDF(__DIR__ . '/2.pdf', 'all')
+        ->merge('browser', __DIR__ . 'merge.pdf');
+}
 
 function resetTable(){
     try {
