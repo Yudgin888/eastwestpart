@@ -40,7 +40,7 @@ class UserForm extends Model
         if ($this->validate()) {
             $model = new Users();
             $model->username = addslashes(htmlspecialchars($this->username));
-            $model->password = addslashes(htmlspecialchars($this->password));
+            $model->password = \Yii::$app->getSecurity()->generatePasswordHash($this->password);
             $model->role = $this->role;
             $model->save();
             return true;

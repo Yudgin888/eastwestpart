@@ -7,6 +7,8 @@ set_include_path(get_include_path() . PATH_SEPARATOR . "/vendor/dompdf/dompdf");
 
 include \Yii::getAlias('@app/myClass/pdfmerger/PDFMerger.php');
 
+use Dompdf\Css\Style;
+use Dompdf\Css\Stylesheet;
 use Dompdf\Exception;
 use Dompdf\Options;
 use setasign\Fpdi\Fpdi;
@@ -18,14 +20,17 @@ class PDFHandler
 
     public static function createPDFFile($html, $filepath){
         $options = new Options();
-        $options->set('defaultFont', 'dejavu serif');
-        $dompdf = new \Dompdf\Dompdf($options);
+        /*$options->set('defaultFont', 'dejavu serif');
+        $dompdf = new \Dompdf\Dompdf($options);*/
+        $dompdf = new \Dompdf\Dompdf([
+            'fontDir' => \Yii::getAlias('@app') . '/fonts',
+            'defaultFont' => 'dompdf_times',
+        ]);
         $dompdf->load_html($html);
         $dompdf->setPaper('A4');
-
         $dompdf->render();
         $output = $dompdf->output();
-        file_put_contents($filepath, $output);
+        return file_put_contents($filepath, $output);
     }
 
     public static function mergePDF($files, $pathResult, $mode = 'browser'){
@@ -38,9 +43,10 @@ class PDFHandler
         return $pdf->merge($mode, $pathResult);
     }
 
-    public static function separatePDF($fileName){
+    /*public static function separatePDF($fileName){
         $files = [];
         $dir = __dir__ . '/tmp';
+        FileHelper::removeDirectory($dir);
         FileHelper::createDirectory($dir);
         $pdf = new Fpdi();
         $pageCount = $pdf->setSourceFile($fileName);
@@ -62,5 +68,5 @@ class PDFHandler
         try {
             FileHelper::removeDirectory(__dir__ . '/tmp');
         } catch (Exception $e){}
-    }
+    }*/
 }

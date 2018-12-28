@@ -39,4 +39,8 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
 
     <?php ActiveForm::end(); ?>
+
+    <?php if(YII_ENV === 'dev'):?>
+    <p>Admin:pass</p>
+    <?php endif;?>
 </div>

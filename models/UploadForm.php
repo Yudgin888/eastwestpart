@@ -7,11 +7,20 @@ use yii\base\Model;
 class UploadForm extends Model
 {
     public $file;
+    public $hidden1;
+    public $extensions;
+    public $maxSize = 10000000;
 
     public function rules()
     {
         return [
-            [['file'], 'file', 'skipOnEmpty' => false, 'extensions' => 'xlsx', 'maxSize' => 10000000],
+            [['file'], 'file', 'skipOnEmpty' => false, 'extensions' => $this->extensions, 'maxSize' => $this->maxSize],
         ];
+    }
+
+    public function __construct(array $config = [])
+    {
+        $this->extensions = $config['extensions'];
+        parent::__construct();
     }
 }

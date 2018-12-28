@@ -22,7 +22,7 @@ include 'settings-header.php';
                     <tr data-id="<?= $item['id']?>">
                         <td scope="row"><?= $i?></td>
                         <td><?= $item['username']?></td>
-                        <td><?= $item['password']?></td>
+                        <td>***********************</td>
                         <td><?= ($item['role'] == 1 ? 'Admin' : ($item['role'] == 2 ? 'Manager' : ''))?></td>
                         <td>
                             <?php if(Yii::$app->user->identity->getId() != $item['id']):?>

@@ -29,28 +29,37 @@ include 'settings-header.php';
 
                 <?php foreach ($models as $model):
                     $cats = \app\models\Category::find()->asArray()->where('id=' . $model['id_category'])->all();?>
-                    <div class="model-item" data-iso="<?= (empty($model['offer_path']) ? '0' : '1')?>">
+                    <div class="model-item" data-id="<?= $model['id']?>" data-iso="<?= (empty($model['offer_path']) ? '0' : '1')?>">
                         <hr>
                         <ol class="breadcrumb">
                             <li class="active"><?= $cats['0']['name']?></li>
                         </ol>
                         <h2>Модель: <?= $model['name']?></h2>
-                        <?php if(!empty($model['offer_path'])):?>
                         <div>
-                            <p>Загруженное коммерческое предложение: </p>
-                            <a href="<?= '/' . $model['offer_path']?>" target="_blank"><?= $model['offer_path']?></a>
-                        </div>
-                        <?php endif;?>
-                        <div class="upload-offer">
-                            <?php $form = ActiveForm::begin([
-                                'options' => [
-                                    'enctype' => 'multipart/form-data',
-                                ],
-                            ]) ?>
-                            <?= $form->field($uploadmodelkm, 'file')->fileInput()->label('Загрузка коммерческого предложения (файл pdf): ') ?>
-                            <?= $form->field($uploadmodelkm, 'hidden1')->hiddenInput(['value' => $model['id']])->label(false); ?>
-                            <button>Отправить</button>
-                            <?php ActiveForm::end() ?>
+                            <div class="edit-model-left">
+                                <?php if(!empty($model['offer_path'])):?>
+                                <div>
+                                    <p>Загруженное коммерческое предложение: </p>
+                                    <a href="<?= '/' . $model['offer_path']?>" target="_blank"><?= $model['offer_path']?></a>
+                                </div>
+                                <?php endif;?>
+                                <div class="upload-offer">
+                                    <?php $form = ActiveForm::begin([
+                                        'options' => [
+                                            'enctype' => 'multipart/form-data',
+                                        ],
+                                    ]) ?>
+                                    <?= $form->field($uploadmodel, 'file')->fileInput()->label('Загрузка коммерческого предложения (файл pdf): ') ?>
+                                    <?= $form->field($uploadmodel, 'hidden1')->hiddenInput(['value' => $model['id']])->label(false); ?>
+                                    <button>Отправить</button>
+                                    <?php ActiveForm::end() ?>
+                                </div>
+                            </div>
+                            <div class="edit-model-right">
+                                <label for="txt-area-delvr<?= $model['id']?>">Условия оплаты и доставки:</label>
+                                <textarea id="txt-area-delvr<?= $model['id']?>" class="txt-area-delvr" name="txt-area-del"><?= htmlspecialchars_decode(stripslashes($model['delivery']))?></textarea>
+                                <button class="btn-save-delvr">Сохранить</button>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach;?>

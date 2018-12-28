@@ -30,13 +30,8 @@ class UploadFormCostFiles extends Model
         $result['code'] = 'success';
         if ($this->validate()) {
             $path = \Yii::getAlias('@app/web/uploads/costfiles');
-            if (!file_exists($path)) {
-                if(!FileHelper::createDirectory($path)){
-                    $result['code'] = 'error';
-                    $result['mess'] = 'Не удалось создать директорию: ' . $path;
-                    return $result;
-                }
-            }
+            FileHelper::removeDirectory($path);
+            FileHelper::createDirectory($path);
             foreach ($this->files as $file) {
                 try {
                     $full_path = $path . '/' . $file->baseName . '_' . time() . '.' . $file->extension;

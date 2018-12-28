@@ -20,44 +20,38 @@ $(document).ready(function() {
         $(location).attr('href', url);
     });
 
-    $('.btn-load-price').on('click', function(e){
-        var model = $(e.target).closest('.model-item');
-        var model_id = $(model).data('id');
-        var options = $(model).find('input:checkbox:checked');
-        var options_id = [];
-        for(var i = 0; i < options.length; i++){
-            options_id.push($(options[i]).data('id'));
-        }
-        var city = $(model).find('.city-input').val();
-        var cost = $(model).find('.cost-delivery input').val();
-        var data = {
-            'model_id': model_id,
-            'options_id': options_id,
-            'city': city,
-            'cost': cost
-        };
-        $.post({
-            type: 'POST',
-            url: "/viewpdf?id=" + model_id,
-            data: data,
-            success: function(e){
-            }
-        });
+    $('.btn-no-basic-pdf').on('click', function(e){
+        var url = '/settings?tab=upload-offers';
+        window.open(url, '_target');
     });
+
+    $('.model-item-main input:checkbox').on('change', checkAvailableBtnLoadPrice);
+    $('.model-item-main .city-input').on('keyup', checkAvailableBtnLoadPrice);
+    $('.model-item-main .cost-delivery input').on('keyup', checkAvailableBtnLoadPrice);
+
+    $('.btn-load-price').on('click', openPdfWithOptions);
 
     $('.btn-open-offer').on('click', function(e){
         var model = $(e.target).closest('.model-item');
         var model_id = $(model).data('id');
-        var data = {
-            'model_id': model_id
-        };
-        $.post({
+        window.open('/viewpdf?id=' + model_id, '_blank');
+    });
+
+    $('.btn-save-delvr').on('click', function(e){
+        var model = $(e.target).closest('.model-item');
+        var model_id = $(model).data('id');
+        var txt = $('#txt-area-delvr' + model_id).val();
+        $.ajax({
+            url: '/site/settings',
+            data: {
+                name: 'edit-model',
+                id: model_id,
+                txt: txt
+            },
             type: 'POST',
-            url: "/viewpdf?id=" + model_id,
-            data: data,
-            success: function(e){
-                var WinId = window.open('', 'newwin', 'width=600,height=800');
-                window.open(e, 'window name', 'window settings');
+            success: function(){
+            },
+            error: function(){
             }
         });
     });
@@ -76,10 +70,22 @@ $(document).ready(function() {
         }
     });
 
-    //checkAvailableBtnLoadPrice();
-
-
+    checkAvailableBtnLoadPrice();
 });
+
+function openPdfWithOptions(e) {
+    var model = $(e.target).closest('.model-item');
+    var model_id = $(model).data('id');
+    var options = $(model).find('input:checkbox:checked');
+    var options_id = [];
+    for(var i = 0; i < options.length; i++){
+        options_id.push($(options[i]).data('id'));
+    }
+    var city = $(model).find('.city-input').val();
+    var cost = $(model).find('.cost-delivery input').val();
+    var url = '/viewpdf?id=' + model_id + '&opts=' + options_id.join('+') + '&city=' + city + '&cost=' + cost;
+    window.open(url, '_blank');
+}
 
 function isNumberKey(evt) {
     var charCode = (evt.which) ? evt.which : event.keyCode
@@ -90,15 +96,20 @@ function isNumberKey(evt) {
 };
 
 function checkAvailableBtnLoadPrice(){
-    var models = $('.model-item');
-
-    for(var i = 0; i < models.length; i++){
-        var check = $(models[i]).find('.model-options input:checkbox:checked').length;
-
-        if(check > 0){
-            $(models[i]).find('.btn-load-price').css('disabled', 'enabled');
-        } else {
-            $(models[i]).find('.btn-load-price').css('disabled', 'disabled');
+    var models = $('.model-item-main');
+    if(models) {
+        for (var i = 0; i < models.length; i++) {
+            var check = $(models[i]).find('.model-options input:checkbox:checked').length;
+            var elem = $(models[i]).find('.btn-load-price');
+            var city = $(models[i]).find('.city-input').val();
+            var cost = $(models[i]).find('.cost-delivery input').val();
+            $(elem).unbind('click');
+            if (check > 0 || (city.length > 0 && cost.length > 0)) {
+                $(elem).removeClass('disabled-btn');
+                $(elem).bind('click', openPdfWithOptions);
+            } else {
+                $(elem).addClass('disabled-btn');
+            }
         }
     }
 }

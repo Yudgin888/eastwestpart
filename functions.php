@@ -33,7 +33,7 @@ function parseCostFile($fileName){
                 for ($i = 3; $i < count($value) + 1; $i++) {
                     $name = $value[$i]['A'];
                     if (!empty($name)) {
-                        if (strpos($name, 'опции') !== false) {
+                        if (strpos($name, 'опции') !== false || strpos($name, 'Опции') !== false) {
                             $basic = 0;
                             continue;
                         }

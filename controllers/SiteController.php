@@ -4,13 +4,14 @@ namespace app\controllers;
 
 use app\models\Category;
 use app\models\Option;
+use app\models\Settings;
 use app\models\TModel;
 use app\models\UploadFormCostFiles;
-use app\models\UploadFormKM;
 use app\models\UploadOffers;
 use app\models\UserForm;
 use app\models\Users;
 use app\myClass\PDFHandler;
+use Dompdf\Exception;
 use Yii;
 use yii\filters\AccessControl;
 use yii\helpers\FileHelper;
@@ -97,7 +98,17 @@ class SiteController extends Controller
                 Yii::$app->session->setFlash('error-del-user', 'Не удалось удалить пользователя!');
             }
             return $this->redirect('/settings?tab=users');
-        } else return false;
+        } elseif ($post && $post['name'] == 'edit-model') {
+            $model = TModel::find()->where(['id' => $post['id']])->all()[0];
+            if($model){
+                $model->delivery = addslashes(htmlspecialchars($post['txt']));
+                $model->update();
+                Yii::$app->session->setFlash('success-proc', 'Изменения сохранены!');
+            } else {
+                Yii::$app->session->setFlash('error-proc', 'Не удалось сохранить изменения!');
+            }
+            return $this->redirect('/settings?tab=upload-offers');
+        }else return false;
     }
 
     private function delUserById($id)
@@ -115,49 +126,71 @@ class SiteController extends Controller
         if(Yii::$app->user->isGuest){
             return $this->redirect('/login');
         }
-
-        $post = Yii::$app->request->post();
-        if(!empty($post) && isset($post['model_id'])){
-            $id = $post['model_id'];
-        } else {
-            $id = Yii::$app->request->get('id');
-        }
+        $id = Yii::$app->request->get('id');
         if(empty($id)){
             return $this->goBack();
         }
-        $options_id = isset($post['options_id']) ? $post['options_id'] : [];
-        $city = isset($post['city']) ? $post['city'] : '';
-        $cost = isset($post['cost']) ? $post['cost'] : '';
-        $htmlPage = $this->createOptionsPage($id, $options_id, $city, $cost);
-        $tmp_path = Yii::getAlias('@app/tmp');
-        if (!file_exists($tmp_path)) {
-            FileHelper::createDirectory($tmp_path);
-        }
-        $tmp_path .= '/pdf_' . time() . '.pdf';
-        PDFHandler::createPDFFile($htmlPage, $tmp_path);
         $model = TModel::find()->asArray()->where('id=' . $id)->all()[0];
-        $basic_pdf = Yii::getAlias('@app/web/') . $model['offer_path'];
-        $files = [
-            '0' => $basic_pdf,
-            '1' => $tmp_path,
-        ];
-        $pathResult = Yii::getAlias('@app/tmp/resultmerge');
-        if (!file_exists($pathResult)) {
-            FileHelper::createDirectory($pathResult);
+        if(empty($model)){
+            return $this->goBack();
         }
-
+        $this->view->title = 'Модель ' . $model['name'];
+        $options_id = Yii::$app->request->get('opts');
+        $city = Yii::$app->request->get('city');
+        $cost = Yii::$app->request->get('cost');
+        $htmlPage = $this->createOptionsPage($id, $options_id, $city, $cost);
+        $pdfhandler_path = Yii::getAlias('@app/pdfhandler_tmp');
+        if (!file_exists($pdfhandler_path)) {
+            FileHelper::createDirectory($pdfhandler_path);
+        }
+        $tmp_path = $pdfhandler_path . '/tmp';
+        FileHelper::removeDirectory($tmp_path);
+        FileHelper::createDirectory($tmp_path);
+        $tmp_path .= '/pdf_' . time() . '.pdf';
+        $files = [];
+        if(!empty($model['offer_path'])){
+            $files[] = Yii::getAlias('@app/web/') . $model['offer_path'];
+        }
+        if($htmlPage) {
+            if(PDFHandler::createPDFFile($htmlPage, $tmp_path)) {
+                $files[] = $tmp_path;
+            }
+        }
+        if(!empty(trim($model['delivery']))){
+            $epilog = $pdfhandler_path . '/tmp/pdf_epilog_' . time() . '.pdf';
+            $html = $this->createEpilogPage(htmlspecialchars_decode(stripslashes($model['delivery'])));
+            if(PDFHandler::createPDFFile($html, $epilog)) {
+                $files[] = $epilog;
+            }
+        } else {
+            $epilog = Settings::find()->asArray()->where(['name' => 'epilog'])->all()[0];
+            if (!empty($epilog) && !empty($epilog['value'])) {
+                $files[] = Yii::getAlias('@app/web/') . $epilog['value'];
+            }
+        }
+        $pathResult = $pdfhandler_path . '/resultmerge';
+        FileHelper::removeDirectory($pathResult);
+        FileHelper::createDirectory($pathResult);
         return PDFHandler::mergePDF($files, $pathResult . '/tmp_' . time() . '.pdf');
+    }
 
-
+    private function createEpilogPage($html){
+        return $this->renderAjax('epilog-page', compact('html'));
     }
 
     private function createOptionsPage($id, $options_id, $city, $cost){
         if(!empty($options_id)) {
-            $model = TModel::find()->asArray()->where('id=' . $id)->all();
-            return $this->render('viewpdfopt', compact('model', 'city', 'cost'));
+            $options_id = explode(' ', $options_id);
+            $options = Option::find()->asArray()->where([
+                'id_model' => $id,
+                'id' => $options_id,
+            ])->all();
+            return $this->renderAjax('viewpdfopt', compact('options', 'city', 'cost'));
         } else {
-            //$model = TModel::find()->asArray()->where('id=' . $id)->all();
             $options = Option::find()->asArray()->where('id_model=' . $id)->all();
+            if(count($options) == 0){
+                return false;
+            }
             usort($options, function($arr1, $arr2){
                 return $arr2['basic'] - $arr1['basic'];
             });
@@ -196,14 +229,13 @@ class SiteController extends Controller
 
     private function settingTabPrice()
     {
-        $uploadmodel = new UploadForm();
+        $uploadmodel = new UploadForm(['extension' => 'xlsx']);
         if (Yii::$app->request->isPost) {
             $uploadmodel->file = UploadedFile::getInstance($uploadmodel, 'file');
             if ($uploadmodel->file && $uploadmodel->validate()) {
                 $path = Yii::getAlias('@app/web/uploads/prices');
-                if (!file_exists($path)) {
-                    FileHelper::createDirectory($path);
-                }
+                FileHelper::removeDirectory($path);
+                FileHelper::createDirectory($path);
                 $filename = $path . '/' . $uploadmodel->file->baseName . '_' . time() . '.' . $uploadmodel->file->extension;
                 if ($uploadmodel->file->saveAs($filename)) {
                     Yii::$app->session->setFlash('success-load', 'Файл ' . $uploadmodel->file->baseName . '.' . $uploadmodel->file->extension . ' успешно загружен!');
@@ -212,13 +244,11 @@ class SiteController extends Controller
                 }
                 $result = loadPrice($filename);
                 if ($result) {
-
                     Yii::$app->session->setFlash('success-proc', 'Файл успешно обработан! Добавлено: ' . $result['cats_count'] . ' ' . getNumEnding($result['cats_count'], ['категория', 'категории', 'категорий'])
                         . ', ' . $result['mdl_count'] . ' ' . getNumEnding($result['mdl_count'], ['модель', 'модели', 'моделей']));
                 } else {
                     Yii::$app->session->setFlash('error-proc', 'Не удалось обработать файл!');
                 }
-                $uploadmodel = new UploadForm();
                 return $this->redirect('/settings');
             }
         }
@@ -272,7 +302,6 @@ class SiteController extends Controller
                 Yii::$app->session->setFlash('success-parse-cost', 'Обработанные файлы: ' . implode(', ', $succ_mess));
                 Yii::$app->session->setFlash('success-parse-cost-count', 'Добавлено опций: ' . $opt_count);
             }
-            $model = new UploadFormCostFiles();
             return $this->refresh();
         }
         $count_opt = Option::find()->count();
@@ -282,37 +311,34 @@ class SiteController extends Controller
 
     private function settingTabUpLoadOffers()
     {
-        $uploadmodelkm = new UploadFormKM();
+        $uploadmodel = new UploadForm(['extension' => 'pdf']);
         $multiupload = new UploadOffers();
         if (Yii::$app->request->isPost) {
             $post = Yii::$app->request->post();
             if(isset($post['UploadFormKM'])) {
-                $uploadmodelkm->file = UploadedFile::getInstance($uploadmodelkm, 'file');
-                if ($uploadmodelkm->file && $uploadmodelkm->validate()) {
+                $uploadmodel->file = UploadedFile::getInstance($uploadmodel, 'file');
+                if ($uploadmodel->file && $uploadmodel->validate()) {
                     $model_id = $post['UploadFormKM']['hidden1'];
                     $model = TModel::findOne(['id' => $model_id]);
-                    //$model = TModel::find()->where('id=' . $model_id)->with('option')->all();
                     if ($model) {
                         $path = Yii::getAlias('@app/web/uploads/offers/' . $model->name);
-                        if (!file_exists($path)) {
-                            FileHelper::createDirectory($path);
-                        }
-                        $file_name = $uploadmodelkm->file->baseName . '_' . time() . '.' . $uploadmodelkm->file->extension;
+                        FileHelper::removeDirectory($path);
+                        FileHelper::createDirectory($path);
+                        $file_name = $uploadmodel->file->baseName . '_' . time() . '.' . $uploadmodel->file->extension;
                         $filepath = $path . '/' . $file_name;
-                        if ($uploadmodelkm->file->saveAs($filepath)) {
+                        if ($uploadmodel->file->saveAs($filepath)) {
                             $model->offer_path = 'uploads/offers/' . $model->name . '/' . $file_name;
                             $model->update();
-                            Yii::$app->session->setFlash('success-load', 'Файл ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension . ' успешно загружен!');
+                            Yii::$app->session->setFlash('success-load', 'Файл ' . $uploadmodel->file->baseName . '.' . $uploadmodel->file->extension . ' успешно загружен!');
                         } else {
-                            Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл: ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension);
+                            Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл: ' . $uploadmodel->file->baseName . '.' . $uploadmodel->file->extension);
                         }
-                        $uploadmodelkm = new UploadFormKM();
                     } else {
                         Yii::$app->session->setFlash('error-load', 'Модель ' . $model_id . ' не найдена!');
                     }
                     return $this->redirect('/settings?tab=upload-offers');
                 } else {
-                    Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл: ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension);
+                    Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл: ' . $uploadmodel->file->baseName . '.' . $uploadmodel->file->extension);
                     return $this->redirect('/settings?tab=upload-offers');
                 }
             } else if(isset($post['UploadOffers'])) {
@@ -327,17 +353,47 @@ class SiteController extends Controller
                 if(count($result['error2']) > 0){
                     Yii::$app->session->setFlash('error-load', 'Не были найдены соответствующие модели для файлов: ' . implode(', ', $result['error2']));
                 }
-                $multiupload = new UploadOffers();
                 return $this->redirect('/settings?tab=upload-offers');
             }
         }
         $models = TModel::find()->asArray()->all();
         $count_mod = TModel::find()->count();
-        return $this->render('settings-tab-upload-offers', compact('models', 'uploadmodelkm', 'multiupload', 'count_mod'));
+        return $this->render('settings-tab-upload-offers', compact('models', 'uploadmodel', 'multiupload', 'count_mod'));
     }
 
     private function settingTabEpilog(){
-        return $this->render('settings-tab-epilog');
+        $uploadmodel = new UploadForm(['extension' => 'pdf']);
+        if (Yii::$app->request->isPost) {
+            $uploadmodel->file = UploadedFile::getInstance($uploadmodel, 'file');
+            if ($uploadmodel->file && $uploadmodel->validate()) {
+                $path = Yii::getAlias('@app/web/uploads/epilog');
+                FileHelper::removeDirectory($path);
+                FileHelper::createDirectory($path);
+                $name = $uploadmodel->file->baseName . '_' . time() . '.' . $uploadmodel->file->extension;
+                $filename = $path . '/' . $name;
+                $urlpath = 'uploads/epilog/' . $name;
+                if ($uploadmodel->file->saveAs($filename)) {
+                    try {
+                        $settings = Settings::find()->where(['name' => 'epilog'])->all()[0];
+                        if ($settings) {
+                            $settings->value = $urlpath;
+                            $settings->update();
+                        } else {
+                            $settings = new Settings('epilog', $urlpath);
+                            $settings->save();
+                        }
+                    } catch (Exception $ex){
+                        Yii::$app->session->setFlash('error-proc', 'Ошибка записи в базу данных');
+                    }
+                    Yii::$app->session->setFlash('success-load', 'Файл ' . $uploadmodel->file->baseName . '.' . $uploadmodel->file->extension . ' успешно загружен!');
+                } else {
+                    Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл: ' . $uploadmodel->file->baseName . '.' . $uploadmodel->file->extension);
+                }
+                return $this->redirect('/settings?tab=upload-epilog');
+            }
+        }
+        $epilog = Settings::find()->asArray()->where(['name' => 'epilog'])->all()[0];
+        return $this->render('settings-tab-epilog', compact('uploadmodel', 'epilog'));
     }
 
     public function actionSettings()

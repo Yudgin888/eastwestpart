@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\myClass\CreateTables;
 use yii\web\IdentityInterface;
 
 class User extends \yii\base\BaseObject implements IdentityInterface
@@ -15,6 +16,7 @@ class User extends \yii\base\BaseObject implements IdentityInterface
 
     public static function findIdentity($id)
     {
+        CreateTables::up();
         $result = Users::find()->asArray()->where(['id' => $id])->limit(1)->all();
         if($result && $result[0]){
             $res = $result[0];
@@ -78,6 +80,6 @@ class User extends \yii\base\BaseObject implements IdentityInterface
 
     public function validatePassword($password)
     {
-        return $this->password === $password;
+        return \Yii::$app->getSecurity()->validatePassword($password, $this->password);
     }
 }

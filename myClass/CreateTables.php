@@ -32,6 +32,7 @@ class CreateTables
                   `price` varchar(255),
                   `id_category` int(11) NOT NULL,
                   `offer_path` longtext,
+                  `delivery` longtext,
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();
@@ -48,7 +49,8 @@ class CreateTables
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();
-            $sql = "INSERT INTO `eastwestpart`.`user` (`username`, `password`, `auth_key`, `role`, `accessToken`) VALUES ('admin', 'pass', '', '1', '');";
+            $pass = \Yii::$app->getSecurity()->generatePasswordHash('pass');
+            $sql = "INSERT INTO `eastwestpart`.`cr_of_user` (`username`, `password`, `auth_key`, `role`, `accessToken`) VALUES ('admin', '{$pass}', '', '1', '');";
             $db->createCommand($sql)->execute();
         }
         if ($db->getTableSchema('cr_of_option', true) === null) {
@@ -63,6 +65,17 @@ class CreateTables
                 );";
             $db->createCommand($sql)->execute();
         }
+
+        if ($db->getTableSchema('cr_of_settings', true) === null) {
+            $sql = "
+                CREATE TABLE `cr_of_settings` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `name` varchar(255) NOT NULL,
+                  `value` longtext NOT NULL,
+                  PRIMARY KEY (`id`)
+                );";
+            $db->createCommand($sql)->execute();
+        }
     }
 
     public static function reset(){
@@ -71,6 +84,8 @@ class CreateTables
         $sql = "DELETE FROM `cr_of_category`";
         $db->createCommand($sql)->execute();
         $sql = "DELETE FROM `cr_of_model`";
+        $db->createCommand($sql)->execute();
+        $sql = "DELETE FROM `cr_of_option`";
         $db->createCommand($sql)->execute();
     }
 
