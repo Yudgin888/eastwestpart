@@ -10,9 +10,9 @@ class CreateTables
     {
         $db = \Yii::$app->getDb();
         //$db->createCommand("SET GLOBAL sql_mode=''");
-        if ($db->getTableSchema('category', true) === null) {
+        if ($db->getTableSchema('cr_of_category', true) === null) {
             $sql = "
-                CREATE TABLE `category` (
+                CREATE TABLE `cr_of_category` (
                   `id` int(11) NOT NULL AUTO_INCREMENT,
                   `name` varchar(255) NOT NULL,
                   `num` varchar(255) NOT NULL,
@@ -23,9 +23,9 @@ class CreateTables
                 );";
             $db->createCommand($sql)->execute();
         }
-        if ($db->getTableSchema('model', true) === null) {
+        if ($db->getTableSchema('cr_of_model', true) === null) {
             $sql = "
-                CREATE TABLE `model` (
+                CREATE TABLE `cr_of_model` (
                   `id` int(11) NOT NULL AUTO_INCREMENT,
                   `name` varchar(255) NOT NULL,
                   `parameters` longtext,
@@ -36,9 +36,9 @@ class CreateTables
                 );";
             $db->createCommand($sql)->execute();
         }
-        if ($db->getTableSchema('user', true) === null) {
+        if ($db->getTableSchema('cr_of_user', true) === null) {
             $sql = "
-                CREATE TABLE `user` (
+                CREATE TABLE `cr_of_user` (
                   `id` int(11) NOT NULL AUTO_INCREMENT,
                   `username` varchar(255) NOT NULL,
                   `password` varchar(255) NOT NULL,
@@ -51,9 +51,9 @@ class CreateTables
             $sql = "INSERT INTO `eastwestpart`.`user` (`username`, `password`, `auth_key`, `role`, `accessToken`) VALUES ('admin', 'pass', '', '1', '');";
             $db->createCommand($sql)->execute();
         }
-        if ($db->getTableSchema('option', true) === null) {
+        if ($db->getTableSchema('cr_of_option', true) === null) {
             $sql = "
-                CREATE TABLE `option` (
+                CREATE TABLE `cr_of_option` (
                   `id` int(11) NOT NULL AUTO_INCREMENT,
                   `name` varchar(255) NOT NULL,
                   `cost` varchar(255),
@@ -68,23 +68,23 @@ class CreateTables
     public static function reset(){
         self::up();
         $db = \Yii::$app->getDb();
-        $sql = "DELETE FROM `category`";
+        $sql = "DELETE FROM `cr_of_category`";
         $db->createCommand($sql)->execute();
-        $sql = "DELETE FROM `model`";
+        $sql = "DELETE FROM `cr_of_model`";
         $db->createCommand($sql)->execute();
     }
 
     public static function down()
     {
         $db = \Yii::$app->db;
-        if ($db->getTableSchema('model', true) !== null) {
+        if ($db->getTableSchema('cr_of_model', true) !== null) {
             try {
-                $db->createCommand()->dropTable('model')->execute();
+                $db->createCommand()->dropTable('cr_of_model')->execute();
             } catch (Exception $e){}
         }
-        if ($db->getTableSchema('category', true) !== null) {
+        if ($db->getTableSchema('cr_of_category', true) !== null) {
             try {
-                $db->createCommand()->dropTable('category')->execute();
+                $db->createCommand()->dropTable('cr_of_category')->execute();
             } catch (Exception $e){}
         }
     }
@@ -92,9 +92,9 @@ class CreateTables
     public static function downOptions()
     {
         $db = \Yii::$app->db;
-        if ($db->getTableSchema('option', true) !== null) {
+        if ($db->getTableSchema('cr_of_option', true) !== null) {
             try {
-                $db->createCommand()->dropTable('option')->execute();
+                $db->createCommand()->dropTable('cr_of_option')->execute();
             } catch (Exception $e){}
         }
     }

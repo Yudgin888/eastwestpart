@@ -19,7 +19,6 @@ class PDFHandler
     public static function createPDFFile($html, $filepath){
         $options = new Options();
         $options->set('defaultFont', 'dejavu serif');
-        //$options->setFontHeightRatio(16);
         $dompdf = new \Dompdf\Dompdf($options);
         $dompdf->load_html($html);
         $dompdf->setPaper('A4');

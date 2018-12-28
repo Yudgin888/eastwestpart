@@ -21,7 +21,7 @@ class TModel extends ActiveRecord
 
     public static function tableName()
     {
-        return 'model';
+        return 'cr_of_model';
     }
 
     public function __construct($name = '', $parameters = '', $price = '', $id_category = 0, $offer_path = ''){

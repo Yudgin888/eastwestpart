@@ -96,7 +96,7 @@ class SiteController extends Controller
             } else {
                 Yii::$app->session->setFlash('error-del-user', 'Не удалось удалить пользователя!');
             }
-            return $this->refresh();
+            return $this->redirect('/settings?tab=users');
         } else return false;
     }
 
@@ -145,9 +145,8 @@ class SiteController extends Controller
         if (!file_exists($pathResult)) {
             FileHelper::createDirectory($pathResult);
         }
-        $fileName = '/tmp/resultmerge/tmp_1545921568.pdf';
+
         return PDFHandler::mergePDF($files, $pathResult . '/tmp_' . time() . '.pdf');
-        return $fileName;
 
 
     }
@@ -195,7 +194,7 @@ class SiteController extends Controller
         return $this->render('model', compact('models', 'breadcrumbs'));
     }
 
-    private function settingTab1()
+    private function settingTabPrice()
     {
         $uploadmodel = new UploadForm();
         if (Yii::$app->request->isPost) {
@@ -225,10 +224,10 @@ class SiteController extends Controller
         }
         $count_cat = Category::find()->count();
         $count_mod = TModel::find()->count();
-        return $this->render('settings-tab1', compact('uploadmodel', 'count_cat', 'count_mod'));
+        return $this->render('settings-tab-price', compact('uploadmodel', 'count_cat', 'count_mod'));
     }
 
-    private function settingTab2()
+    private function settingTabUsers()
     {
         $users = Users::find()->asArray()->all();
         $usermodel = new UserForm();
@@ -239,10 +238,10 @@ class SiteController extends Controller
                 return $this->redirect('/settings?tab=users');
             }
         }
-        return $this->render('settings-tab2', compact('users', 'usermodel'));
+        return $this->render('settings-tab-users', compact('users', 'usermodel'));
     }
 
-    private function settingTab3()
+    private function settingTabUpLoadOptions()
     {
         $model = new UploadFormCostFiles();
         if (Yii::$app->request->isPost) {
@@ -277,10 +276,11 @@ class SiteController extends Controller
             return $this->refresh();
         }
         $count_opt = Option::find()->count();
-        return $this->render('settings-tab3', compact('model', 'count_opt'));
+        $count_mod = TModel::find()->count();
+        return $this->render('settings-tab-upload-options', compact('model', 'count_opt', 'count_mod'));
     }
 
-    private function settingTab4()
+    private function settingTabUpLoadOffers()
     {
         $uploadmodelkm = new UploadFormKM();
         $multiupload = new UploadOffers();
@@ -310,10 +310,10 @@ class SiteController extends Controller
                     } else {
                         Yii::$app->session->setFlash('error-load', 'Модель ' . $model_id . ' не найдена!');
                     }
-                    return $this->redirect('/settings?tab=upload-kpm');
+                    return $this->redirect('/settings?tab=upload-offers');
                 } else {
                     Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файл: ' . $uploadmodelkm->file->baseName . '.' . $uploadmodelkm->file->extension);
-                    return $this->redirect('/settings?tab=upload-kpm');
+                    return $this->redirect('/settings?tab=upload-offers');
                 }
             } else if(isset($post['UploadOffers'])) {
                 $multiupload->files = UploadedFile::getInstances($multiupload, 'files');
@@ -325,14 +325,19 @@ class SiteController extends Controller
                     Yii::$app->session->setFlash('error-load', 'Не удалось загрузить файлы: ' . implode(', ', $result['error1']));
                 }
                 if(count($result['error2']) > 0){
-                    Yii::$app->session->setFlash('error-load', 'Не были найдены соответствующие модели: ' . implode(', ', $result['error2']));
+                    Yii::$app->session->setFlash('error-load', 'Не были найдены соответствующие модели для файлов: ' . implode(', ', $result['error2']));
                 }
                 $multiupload = new UploadOffers();
-                return $this->redirect('/settings?tab=upload-kpm');
+                return $this->redirect('/settings?tab=upload-offers');
             }
         }
         $models = TModel::find()->asArray()->all();
-        return $this->render('settings-tab4', compact('models', 'uploadmodelkm', 'multiupload'));
+        $count_mod = TModel::find()->count();
+        return $this->render('settings-tab-upload-offers', compact('models', 'uploadmodelkm', 'multiupload', 'count_mod'));
+    }
+
+    private function settingTabEpilog(){
+        return $this->render('settings-tab-epilog');
     }
 
     public function actionSettings()
@@ -351,13 +356,15 @@ class SiteController extends Controller
             $act_tab = 'upload-price';
         }
         if($act_tab == 'upload-price'){
-            return $this->settingTab1();
-        } elseif($act_tab == 'users'){
-            return $this->settingTab2();
-        } elseif($act_tab == 'upload-cost'){
-            return $this->settingTab3();
-        } elseif($act_tab == 'upload-kpm') {
-            return $this->settingTab4();
+            return $this->settingTabPrice();
+        } elseif($act_tab == 'upload-options') {
+            return $this->settingTabUpLoadOptions();
+        } elseif($act_tab == 'upload-offers') {
+            return $this->settingTabUpLoadOffers();
+        } elseif($act_tab == 'upload-epilog'){
+            return $this->settingTabEpilog();
+        } elseif($act_tab == 'users') {
+            return $this->settingTabUsers();
         } else {
             return $this->goHome();
         }

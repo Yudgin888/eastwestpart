@@ -15,7 +15,7 @@ class Category extends ActiveRecord
 
     public static function tableName()
     {
-        return 'category';
+        return 'cr_of_category';
     }
 
     public function __construct($name, $num, $info, $id_par, $ism)

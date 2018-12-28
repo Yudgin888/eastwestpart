@@ -21,7 +21,7 @@ class Option extends ActiveRecord
 
     public static function tableName()
     {
-        return 'option';
+        return 'cr_of_option';
     }
 
     public function __construct($name = '', $cost = '', $basic = '', $id_model = ''){

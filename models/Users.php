@@ -8,6 +8,6 @@ class Users extends ActiveRecord
 {
     public static function tableName()
     {
-        return 'user';
+        return 'cr_of_user';
     }
 }

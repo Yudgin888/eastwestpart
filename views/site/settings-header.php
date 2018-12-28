@@ -44,8 +44,9 @@ $this->title = 'Создание КП | Настройки';
         ?>
         <ul class="nav nav-tabs settings-tabs">
             <li data-tag="upload-price" class="<?= ($act_tab == 'upload-price') ? 'active' : ''?>"><a href="?tab=upload-price">Загрузка прайса</a></li>
+            <li data-tag="upload-options" class="<?= ($act_tab == 'upload-options') ? 'active' : ''?>"><a href="?tab=upload-options">Загрузка опций</a></li>
+            <li data-tag="upload-offers" class="<?= ($act_tab == 'upload-offers') ? 'active' : ''?>"><a href="?tab=upload-offers">Загрузка КП моделей</a></li>
+            <li data-tag="upload-epilog" class="<?= ($act_tab == 'upload-epilog') ? 'active' : ''?>"><a href="?tab=upload-epilog">Загрузка эпилога</a></li>
             <li data-tag="users" class="<?= ($act_tab == 'users') ? 'active' : ''?>"><a href="?tab=users">Пользователи</a></li>
-            <li data-tag="upload-cost" class="<?= ($act_tab == 'upload-cost') ? 'active' : ''?>"><a href="?tab=upload-cost">Загрузка опций</a></li>
-            <li data-tag="upload-kpm" class="<?= ($act_tab == 'upload-kpm') ? 'active' : ''?>"><a href="?tab=upload-kpm">Загрузка КП моделей</a></li>
         </ul>
 
