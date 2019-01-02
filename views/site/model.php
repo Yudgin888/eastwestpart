@@ -1,20 +1,15 @@
 <?php
 
 /* @var $this yii\web\View */
-
 $this->title = 'Создание КП | Выбор модели';
 ?>
 <div class="site-index">
     <div class="body-content">
-        <?php
-            //var_dump($cats);
-        ?>
         <ol class="breadcrumb">
             <?php foreach (array_reverse($breadcrumbs) as $item):?>
             <li class="active"><?= $item?></li>
             <?php endforeach;?>
         </ol>
-        <h1><?= $title?></h1>
         <?php foreach ($models as $model):
             $opt = $model['option'];?>
         <div class="model-item model-item-main" data-id="<?= $model['id']?>">

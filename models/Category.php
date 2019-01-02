@@ -32,7 +32,8 @@ class Category extends ActiveRecord
     {
         return [
             [['name', 'id_par'], 'required'],
-            [['info', 'name', 'num'], 'trim'],
+            [['info', 'name'], 'trim'],
+            [['ism', 'num'], 'safe'],
         ];
     }
 }

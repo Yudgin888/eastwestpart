@@ -2,8 +2,6 @@
 use yii\bootstrap\ActiveForm;
 include 'settings-header.php';
 ?>
-<?php// var_dump($models); ?>
-
     <div class="setting-tab-item">
         <h2>Модели:</h2>
         <ul class="nav nav-pills">

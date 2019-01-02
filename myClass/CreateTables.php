@@ -9,7 +9,8 @@ class CreateTables
     public static function up()
     {
         $db = \Yii::$app->getDb();
-        //$db->createCommand("SET GLOBAL sql_mode=''");
+        $sql = "SET sql_mode=''";
+        $db->createCommand($sql)->execute();
         if ($db->getTableSchema('cr_of_category', true) === null) {
             $sql = "
                 CREATE TABLE `cr_of_category` (

@@ -15,12 +15,13 @@ class UploadForm extends Model
     {
         return [
             [['file'], 'file', 'skipOnEmpty' => false, 'extensions' => $this->extensions, 'maxSize' => $this->maxSize],
+            [['hidden1', 'extensions', 'maxSize'], 'safe'],
         ];
     }
 
-    public function __construct(array $config = [])
+    public function __construct($extensions = '.')
     {
-        $this->extensions = $config['extensions'];
+        $this->extensions = $extensions;
         parent::__construct();
     }
 }

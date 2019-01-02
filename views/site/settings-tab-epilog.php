@@ -8,7 +8,7 @@ include 'settings-header.php';
         <?php if(!empty($epilog) && !empty($epilog['value'])):?>
         <div>
             <p>Загруженный эпилог: </p>
-            <a href="<?= '/' . $epilog['value']?>" target="_blank"><?= $epilog['value']?></a>
+            <a href="<?= '/' . $epilog->value?>" target="_blank"><?= $epilog->value?></a>
         </div>
         <?php endif;?>
         <?php $form = ActiveForm::begin([

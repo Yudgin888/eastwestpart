@@ -229,7 +229,7 @@ class SiteController extends Controller
 
     private function settingTabPrice()
     {
-        $uploadmodel = new UploadForm(['extension' => 'xlsx']);
+        $uploadmodel = new UploadForm('xlsx');
         if (Yii::$app->request->isPost) {
             $uploadmodel->file = UploadedFile::getInstance($uploadmodel, 'file');
             if ($uploadmodel->file && $uploadmodel->validate()) {
@@ -311,7 +311,7 @@ class SiteController extends Controller
 
     private function settingTabUpLoadOffers()
     {
-        $uploadmodel = new UploadForm(['extension' => 'pdf']);
+        $uploadmodel = new UploadForm('pdf');
         $multiupload = new UploadOffers();
         if (Yii::$app->request->isPost) {
             $post = Yii::$app->request->post();
@@ -362,7 +362,7 @@ class SiteController extends Controller
     }
 
     private function settingTabEpilog(){
-        $uploadmodel = new UploadForm(['extension' => 'pdf']);
+        $uploadmodel = new UploadForm('pdf');
         if (Yii::$app->request->isPost) {
             $uploadmodel->file = UploadedFile::getInstance($uploadmodel, 'file');
             if ($uploadmodel->file && $uploadmodel->validate()) {
@@ -374,7 +374,7 @@ class SiteController extends Controller
                 $urlpath = 'uploads/epilog/' . $name;
                 if ($uploadmodel->file->saveAs($filename)) {
                     try {
-                        $settings = Settings::find()->where(['name' => 'epilog'])->all()[0];
+                        $settings = Settings::findOne(['name' => 'epilog']);
                         if ($settings) {
                             $settings->value = $urlpath;
                             $settings->update();
@@ -392,7 +392,8 @@ class SiteController extends Controller
                 return $this->redirect('/settings?tab=upload-epilog');
             }
         }
-        $epilog = Settings::find()->asArray()->where(['name' => 'epilog'])->all()[0];
+        //$epilog = Settings::find()->asArray()->where(['name' => 'epilog'])->all()[0];
+        $epilog = Settings::findOne(['name' => 'epilog']);
         return $this->render('settings-tab-epilog', compact('uploadmodel', 'epilog'));
     }
 
