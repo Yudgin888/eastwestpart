@@ -35,14 +35,12 @@ $this->title = 'Создание КП | Выбор модели';
                     <h2>Город доставки/<br>ближайший населенный пункт</h2>
                     <div class="city-delivery">
                         <div class="input-group">
-                            <input type="text" class="form-control city-input" placeholder="Введите название города">
-                            <span class="input-group-btn">
-                                <button class="btn btn-default glyphicon glyphicon-search" type="button"></button>
-                            </span>
+                            <input type="text" class="form-control city-input" autocomplete="off" placeholder="Введите название города">
+                            <div data-count="0" class="search_advice_wrapper"></div>
                         </div>
                     </div>
                     <div class="cost-delivery">
-                        <input type="text" maxlength="100" onkeypress="return isNumberKey(event)" class="form-control" placeholder="Стоимость доставки, у.е." aria-describedby="basic-addon2">
+                        <input type="text" maxlength="100" autocomplete="off" onkeypress="return isNumberKey(event)" class="form-control" placeholder="Стоимость доставки, у.е." aria-describedby="basic-addon2">
                     </div>
                 </div>
             </div>

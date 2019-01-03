@@ -105,3 +105,40 @@
     width: 100%;
     height: 150px;
 }
+
+.search_advice_wrapper{
+    display:none;
+    width: 100%;
+    background-color: black;
+    color: white;
+    -moz-opacity: 0.8;
+    opacity: 0.8;
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha"(Opacity=8);
+    filter: progid:DXImageTransform.Microsoft.Alpha(opacity=8);
+    filter:alpha(opacity=8);
+    z-index:999;
+    position: absolute;
+    top: 34px; left: 0px;
+}
+
+.search_advice_wrapper .advice_variant{
+    cursor: pointer;
+    padding: 5px;
+    text-align: left;
+}
+
+.search_advice_wrapper .advice_variant:hover{
+    color:#FEFFBD;
+    background-color:#818187;
+}
+
+.search_advice_wrapper .active{
+    cursor: pointer;
+    padding: 5px;
+    color:#FEFFBD;
+    background-color:#818187;
+}
+
+.city-delivery .input-group {
+    width: 100%;
+}
