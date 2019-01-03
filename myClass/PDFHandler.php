@@ -62,11 +62,5 @@ class PDFHandler
         }
         $pdf->Close();
         return $files;
-    }
-
-    public static function delTmpDir(){
-        try {
-            FileHelper::removeDirectory(__dir__ . '/tmp');
-        } catch (Exception $e){}
     }*/
 }

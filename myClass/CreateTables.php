@@ -16,10 +16,10 @@ class CreateTables
                 CREATE TABLE `cr_of_category` (
                   `id` int(11) NOT NULL AUTO_INCREMENT,
                   `name` varchar(255) NOT NULL,
-                  `num` varchar(255) NOT NULL,
+                  `num` varchar(255),
                   `info` longtext NOT NULL,
-                  `id_par` int(11) NOT NULL DEFAULT 0,
-                  `ism` int(11) NOT NULL DEFAULT 0,
+                  `id_par` int(11) DEFAULT 0,
+                  `ism` int(11) DEFAULT 0,
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();
@@ -66,13 +66,21 @@ class CreateTables
                 );";
             $db->createCommand($sql)->execute();
         }
-
         if ($db->getTableSchema('cr_of_settings', true) === null) {
             $sql = "
                 CREATE TABLE `cr_of_settings` (
                   `id` int(11) NOT NULL AUTO_INCREMENT,
                   `name` varchar(255) NOT NULL,
                   `value` longtext NOT NULL,
+                  PRIMARY KEY (`id`)
+                );";
+            $db->createCommand($sql)->execute();
+        }
+        if ($db->getTableSchema('cr_of_cities', true) === null) {
+            $sql = "
+                CREATE TABLE `cr_of_cities` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `name` varchar(255) NOT NULL,
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();

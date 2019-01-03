@@ -1,3 +1,6 @@
+var input_initial_value = '';
+var suggest_count = 0;
+
 $(document).ready(function() {
     var opt = $('.selects-block option:selected');
     if($(opt).length && $(opt).data('id') !== 0){
@@ -71,7 +74,119 @@ $(document).ready(function() {
     });
 
     checkAvailableBtnLoadPrice();
+
+
+    //autoautocomplete
+    // читаем ввод с клавиатуры
+    $('.city-input').on('keyup', function(e){
+        switch(e.keyCode) {
+            case 13:  // enter
+            case 27:  // escape
+            case 38:  // стрелка вверх
+            case 40:  // стрелка вниз
+                break;
+            default:
+                var parent = $(e.target).closest('.input-group');
+                if($(this).val().length > 2){
+                    input_initial_value = $(this).val();
+                    $.ajax({
+                        url: '/site/settings',
+                        data: {
+                            name: 'get-cities',
+                            query: $(this).val()
+                        },
+                        type: 'POST',
+                        success: function(data){
+                            var list = JSON.parse(data);
+                            suggest_count = list.length;
+                            if(list.length > 0){
+                                var wrapper = $(parent).find('.search_advice_wrapper');
+                                $(wrapper).html("").show();
+                                for(var i in list){
+                                    if(list[i] != ''){
+                                        $(wrapper).append('<div class="advice_variant">' + list[i] + '</div>');
+                                    }
+                                }
+                            }
+                        },
+                        error: function(){
+                        }
+                    });
+                } else {
+                    var wrapper = $(parent).find('.search_advice_wrapper');
+                    $(wrapper).html("").hide();
+                    suggest_count = 0;
+                }
+                break;
+        }
+    });
+
+    //считываем нажатие клавишь, уже после вывода подсказки
+    $(".city-input").keydown(function(e){
+        var parent = $(e.target).closest('.input-group');
+        var wrapper = $(parent).find('.search_advice_wrapper');
+        switch(e.keyCode) {
+            // по нажатию клавишь прячем подсказку
+            case 13: // enter
+            case 27: // escape
+                $(wrapper).hide();
+                return false;
+                break;
+            // делаем переход по подсказке стрелочками клавиатуры
+            case 38: // стрелка вверх
+            case 40: // стрелка вниз
+                e.preventDefault();
+                var suggest_count = $(wrapper).data('count');
+                if(suggest_count){
+                    //делаем выделение пунктов в слое, переход по стрелочкам
+                    key_activate(e.keyCode - 39, suggest_count, parent);
+                }
+                break;
+        }
+    });
+
+    // делаем обработку клика по подсказке
+    $(document).on('click', '.advice_variant', function(e){
+        var parent = $(e.target).closest('.input-group');
+        var search_box = $(parent).find('.city-input');
+        $(search_box).val($(this).text());
+        var wrapper = $(parent).find('.search_advice_wrapper');
+        $(wrapper).fadeOut(350).html('');
+    });
+
+    // если кликаем в любом месте сайта, нужно спрятать подсказку
+    $(document).on('click', function(e){
+        $('.search_advice_wrapper').hide();
+    });
+
+    // если кликаем на поле input и есть пункты подсказки, то показываем скрытый слой
+    $('.city-input').on('click', function(e){
+        var parent = $(e.target).closest('.input-group');
+        var wrapper = $(parent).find('.search_advice_wrapper');
+        if(suggest_count) {
+            $(wrapper).show();
+        }
+        e.stopPropagation();
+    });
 });
+
+function key_activate(keyCode, suggest_count, parent){
+    var suggest_selected = 0;
+    var divs = $(parent).find('.search_advice_wrapper div');
+    $(divs).eq(suggest_selected - 1).removeClass('active');
+    if(keyCode === 1 && suggest_selected < suggest_count){
+        suggest_selected++;
+    }else if(keyCode === -1 && suggest_selected > 0){
+        suggest_selected--;
+    }
+    var search_box = $(parent).find('.city-input');
+    if(suggest_selected > 0){
+        $(divs).eq(suggest_selected-1).addClass('active');
+        $(search_box).val($(divs).eq(suggest_selected - 1).text());
+    } else {
+        $(search_box).val(input_initial_value);
+    }
+}
 
 function openPdfWithOptions(e) {
     var model = $(e.target).closest('.model-item');

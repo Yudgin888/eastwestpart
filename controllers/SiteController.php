@@ -3,6 +3,8 @@
 namespace app\controllers;
 
 use app\models\Category;
+use app\models\Cities;
+use app\models\CityForm;
 use app\models\Option;
 use app\models\Settings;
 use app\models\TModel;
@@ -77,7 +79,7 @@ class SiteController extends Controller
     private function ajaxHandler()
     {
         $post = Yii::$app->request->post();
-        if ($post && $post['name'] == 'change-cat') {
+        if ($post && $post['name'] === 'change-cat') {
             $id = $post['id'];
             $cats = Category::find()->asArray()->where('id_par=' . $id)->all();
             $result = '';
@@ -91,14 +93,14 @@ class SiteController extends Controller
                 $result .= '</select>';
             }
             return $result;
-        } elseif ($post && $post['name'] == 'delete-user') {
+        } elseif ($post && $post['name'] === 'delete-user') {
             if($this->delUserById($post['id'])){
                 Yii::$app->session->setFlash('success-del-user', 'Пользователь удален!');
             } else {
                 Yii::$app->session->setFlash('error-del-user', 'Не удалось удалить пользователя!');
             }
             return $this->redirect('/settings?tab=users');
-        } elseif ($post && $post['name'] == 'edit-model') {
+        } elseif ($post && $post['name'] === 'edit-model') {
             $model = TModel::find()->where(['id' => $post['id']])->all()[0];
             if($model){
                 $model->delivery = addslashes(htmlspecialchars($post['txt']));
@@ -108,7 +110,14 @@ class SiteController extends Controller
                 Yii::$app->session->setFlash('error-proc', 'Не удалось сохранить изменения!');
             }
             return $this->redirect('/settings?tab=upload-offers');
-        }else return false;
+        } elseif ($post && $post['name'] === 'get-cities' && !empty($post['query'])) {
+            $query = $post['query'];
+            $result = Cities::find()->asArray()->where(['like', 'name', $query])->limit(10)->all();
+            $result = array_map(function($item){
+                return $item['name'];
+            }, $result);
+            return json_encode($result);
+        } else return false;
     }
 
     private function delUserById($id)
@@ -224,7 +233,13 @@ class SiteController extends Controller
             $cats = Category::find()->asArray()->where('id=' . $cats['0']['id_par'])->all();
             $breadcrumbs[] = $cats['0']['name'];
         }
-        return $this->render('model', compact('models', 'breadcrumbs'));
+        $cities = Cities::find()->asArray()->all();
+        if(!empty($cities)) {
+            $cities = array_map(function($item){
+                return $item['name'];
+            }, $cities);
+        }
+        return $this->render('model', compact('models', 'breadcrumbs', 'cities'));
     }
 
     private function settingTabPrice()
@@ -392,9 +407,29 @@ class SiteController extends Controller
                 return $this->redirect('/settings?tab=upload-epilog');
             }
         }
-        //$epilog = Settings::find()->asArray()->where(['name' => 'epilog'])->all()[0];
         $epilog = Settings::findOne(['name' => 'epilog']);
         return $this->render('settings-tab-epilog', compact('uploadmodel', 'epilog'));
+    }
+
+    private function settingTabCities()
+    {
+        $model = new CityForm();
+        if ($model->load(Yii::$app->request->post())) {
+            if($model->save()) {
+                Yii::$app->session->setFlash('success-proc', 'Данные сохранены!');
+            } else {
+                Yii::$app->session->setFlash('error-proc', 'Не удалось сохранить данные!');
+            }
+            return $this->redirect('/settings?tab=cities');
+        }
+        $cities = Cities::find()->asArray()->all();
+        if(!empty($cities)) {
+            $cities = array_map(function($item){
+                return $item['name'];
+            }, $cities);
+            $model->text = implode(', ', $cities);
+        }
+        return $this->render('settings-tab-cities', compact('model'));
     }
 
     public function actionSettings()
@@ -422,6 +457,8 @@ class SiteController extends Controller
             return $this->settingTabEpilog();
         } elseif($act_tab == 'users') {
             return $this->settingTabUsers();
+        } elseif($act_tab == 'cities') {
+            return $this->settingTabCities();
         } else {
             return $this->goHome();
         }
