@@ -6,16 +6,13 @@ $this->title = 'Создание КП | Настройки';
     $success = [
         '0' => 'success-load',
         '1' => 'success-proc',
-        '2' => 'success-del-user',
-        '3' => 'success-add-user',
-        '4' => 'success-parse-cost',
-        '5' => 'success-parse-cost-count',
+        '2' => 'success-parse-cost',
+        '3' => 'success-parse-cost-count',
     ];
     $error = [
         '0' => 'error-load',
         '1' => 'error-proc',
-        '2' => 'error-del-user',
-        '3' => 'error-parse-cost',
+        '2' => 'error-parse-cost',
     ];
     foreach ($success as $item):
         if(Yii::$app->session->hasFlash($item)):?>
@@ -39,10 +36,11 @@ $this->title = 'Создание КП | Настройки';
         <?php
             $act_tab = Yii::$app->request->get('tab');
             if(empty($act_tab)){
-                $act_tab = 'upload-price';
+                $act_tab = 'agencys';
             }
         ?>
         <ul class="nav nav-tabs settings-tabs">
+            <li data-tag="agencys" class="<?= ($act_tab == 'agencys') ? 'active' : ''?>"><a href="?tab=agencys">Представительства</a></li>
             <li data-tag="upload-price" class="<?= ($act_tab == 'upload-price') ? 'active' : ''?>"><a href="?tab=upload-price">Загрузка прайса</a></li>
             <li data-tag="upload-options" class="<?= ($act_tab == 'upload-options') ? 'active' : ''?>"><a href="?tab=upload-options">Загрузка опций</a></li>
             <li data-tag="upload-offers" class="<?= ($act_tab == 'upload-offers') ? 'active' : ''?>"><a href="?tab=upload-offers">Загрузка КП моделей</a></li>

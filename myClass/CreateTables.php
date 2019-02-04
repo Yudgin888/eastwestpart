@@ -47,11 +47,22 @@ class CreateTables
                   `auth_key` varchar(255),
                   `role` int(11) NOT NULL,
                   `accessToken` varchar(255),
+                  `id_agency` int(11),
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();
             $pass = \Yii::$app->getSecurity()->generatePasswordHash('pass');
             $sql = "INSERT INTO `eastwestpart`.`cr_of_user` (`username`, `password`, `auth_key`, `role`, `accessToken`) VALUES ('admin', '{$pass}', '', '1', '');";
+            $db->createCommand($sql)->execute();
+        }
+        if ($db->getTableSchema('cr_of_agency', true) === null) {
+            $sql = "
+                CREATE TABLE `cr_of_agency` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `name` varchar(255) NOT NULL,
+                  `address` longtext,
+                  PRIMARY KEY (`id`)
+                );";
             $db->createCommand($sql)->execute();
         }
         if ($db->getTableSchema('cr_of_option', true) === null) {
