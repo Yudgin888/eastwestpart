@@ -15,6 +15,7 @@ class UserForm extends Model
     public $username;
     public $password;
     public $role;
+    public $id_agent;
 
     public function attributeLabels()
     {
@@ -22,6 +23,7 @@ class UserForm extends Model
             'username' => 'Логин',
             'password' => 'Пароль',
             'role' => 'Группа',
+            'id_agent' => 'Представительство',
         ];
     }
 
@@ -29,7 +31,7 @@ class UserForm extends Model
     {
         return [
             [['username', 'password', 'role'], 'required', 'message' => 'Введите значение поля {attribute}'],
-            [['username', 'password'], 'trim'],
+            [['username', 'password', 'id_agent'], 'trim'],
             ['username', 'validateUserName'],
             ['password', 'validatePassword'],
         ];
@@ -42,6 +44,7 @@ class UserForm extends Model
             $model->username = addslashes(htmlspecialchars($this->username));
             $model->password = \Yii::$app->getSecurity()->generatePasswordHash($this->password);
             $model->role = $this->role;
+            $model->id_agent = $this->id_agent;
             $model->save();
             return true;
         }

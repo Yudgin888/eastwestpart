@@ -47,6 +47,7 @@ class CreateTables
                   `auth_key` varchar(255),
                   `role` int(11) NOT NULL,
                   `accessToken` varchar(255),
+                  `id_agent` int(11),
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();
@@ -81,6 +82,16 @@ class CreateTables
                 CREATE TABLE `cr_of_cities` (
                   `id` int(11) NOT NULL AUTO_INCREMENT,
                   `name` varchar(255) NOT NULL,
+                  PRIMARY KEY (`id`)
+                );";
+            $db->createCommand($sql)->execute();
+        }
+        if ($db->getTableSchema('cr_of_agency', true) === null) {
+            $sql = "
+                CREATE TABLE `cr_of_agency` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `name` varchar(255) NOT NULL,
+                  `address` longtext,
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();
