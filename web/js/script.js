@@ -45,9 +45,8 @@ $(document).ready(function() {
         var model_id = $(model).data('id');
         var txt = $('#txt-area-delvr' + model_id).val();
         $.ajax({
-            url: '/site/settings',
+            url: '/ajax/editmodel',
             data: {
-                name: 'edit-model',
                 id: model_id,
                 txt: txt
             },
@@ -90,9 +89,8 @@ $(document).ready(function() {
                 if($(this).val().length > 2){
                     input_initial_value = $(this).val();
                     $.ajax({
-                        url: '/site/settings',
+                        url: '/ajax/getcities',
                         data: {
-                            name: 'get-cities',
                             query: $(this).val()
                         },
                         type: 'POST',
@@ -233,9 +231,8 @@ function delUser(e){
     var tr = $(e.target).closest('tr')[0];
     var id = $(tr).data('id');
     $.ajax({
-        url: '/site/settings',
+        url: '/ajax/deleteuser',
         data: {
-            name: 'delete-user',
             id: id
         },
         type: 'POST',
@@ -251,11 +248,10 @@ function getSubCat(id, ism){
         $('.btn-block').css('display', 'block');
     }
     $.ajax({
-        url: '/site/index',
+        url: '/ajax/changecategory',
         type: 'POST',
         data: {
             id: id,
-            name: 'change-cat'
         },
         success: function(res){
             if($('.select-item-cat').length === 1 && res.length > 0){

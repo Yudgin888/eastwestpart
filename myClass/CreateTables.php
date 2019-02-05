@@ -1,9 +1,6 @@
 <?php
-
 namespace app\myClass;
-
 use yii\db\Exception;
-
 class CreateTables
 {
     public static function up()
@@ -47,12 +44,22 @@ class CreateTables
                   `auth_key` varchar(255),
                   `role` int(11) NOT NULL,
                   `accessToken` varchar(255),
-                  `id_agent` int(11),
+                  `id_agency` int(11),
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();
             $pass = \Yii::$app->getSecurity()->generatePasswordHash('pass');
             $sql = "INSERT INTO `eastwestpart`.`cr_of_user` (`username`, `password`, `auth_key`, `role`, `accessToken`) VALUES ('admin', '{$pass}', '', '1', '');";
+            $db->createCommand($sql)->execute();
+        }
+        if ($db->getTableSchema('cr_of_agency', true) === null) {
+            $sql = "
+                CREATE TABLE `cr_of_agency` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `name` varchar(255) NOT NULL,
+                  `address` longtext,
+                  PRIMARY KEY (`id`)
+                );";
             $db->createCommand($sql)->execute();
         }
         if ($db->getTableSchema('cr_of_option', true) === null) {
@@ -86,18 +93,7 @@ class CreateTables
                 );";
             $db->createCommand($sql)->execute();
         }
-        if ($db->getTableSchema('cr_of_agency', true) === null) {
-            $sql = "
-                CREATE TABLE `cr_of_agency` (
-                  `id` int(11) NOT NULL AUTO_INCREMENT,
-                  `name` varchar(255) NOT NULL,
-                  `address` longtext,
-                  PRIMARY KEY (`id`)
-                );";
-            $db->createCommand($sql)->execute();
-        }
     }
-
     public static function reset(){
         self::up();
         $db = \Yii::$app->getDb();
@@ -108,7 +104,6 @@ class CreateTables
         $sql = "DELETE FROM `cr_of_option`";
         $db->createCommand($sql)->execute();
     }
-
     public static function down()
     {
         $db = \Yii::$app->db;
@@ -123,7 +118,6 @@ class CreateTables
             } catch (Exception $e){}
         }
     }
-
     public static function downOptions()
     {
         $db = \Yii::$app->db;

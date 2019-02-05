@@ -1,7 +1,5 @@
 <?php
-
 namespace app\controllers;
-
 use app\models\Category;
 use app\models\Cities;
 use app\models\CityForm;
@@ -17,19 +15,12 @@ use Dompdf\Exception;
 use Yii;
 use yii\filters\AccessControl;
 use yii\helpers\FileHelper;
-use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\UploadForm;
 use yii\web\UploadedFile;
-use app\myClass\CreateTables;
-
-define('ADMIN', '1');
-define('MANAGER', '2');
-
 include(Yii::getAlias('@app/functions.php'));
-
-class SiteController extends Controller
+class SiteController extends MainController
 {
     public function behaviors()
     {
@@ -53,7 +44,6 @@ class SiteController extends Controller
             ],
         ];
     }
-
     public function actions()
     {
         return [
@@ -66,71 +56,13 @@ class SiteController extends Controller
             ],
         ];
     }
-
     public function beforeAction($action)
     {
         if (!parent::beforeAction($action)) {
             return false;
         }
-        CreateTables::up();
         return true;
     }
-
-    private function ajaxHandler()
-    {
-        $post = Yii::$app->request->post();
-        if ($post && $post['name'] === 'change-cat') {
-            $id = $post['id'];
-            $cats = Category::find()->asArray()->where('id_par=' . $id)->all();
-            $result = '';
-            if (count($cats) > 0) {
-                $result .= '<select class="select-item-cat">
-                                <option value="Выберите категорию" data-ism="0" data-id="0" selected>Выберите категорию</option>';
-                foreach ($cats as $cat) {
-                    $name = $cat['num'] . ' ' . $cat['name'];
-                    $result .= '<option value="' . $name . '" data-ism="' . $cat['ism'] . '" data-id="' . $cat['id'] . '">' . $name . '</option>';
-                }
-                $result .= '</select>';
-            }
-            return $result;
-        } elseif ($post && $post['name'] === 'delete-user') {
-            if($this->delUserById($post['id'])){
-                Yii::$app->session->setFlash('success-del-user', 'Пользователь удален!');
-            } else {
-                Yii::$app->session->setFlash('error-del-user', 'Не удалось удалить пользователя!');
-            }
-            return $this->redirect('/settings?tab=users');
-        } elseif ($post && $post['name'] === 'edit-model') {
-            $model = TModel::find()->where(['id' => $post['id']])->all()[0];
-            if($model){
-                $model->delivery = addslashes(htmlspecialchars($post['txt']));
-                $model->update();
-                Yii::$app->session->setFlash('success-proc', 'Изменения сохранены!');
-            } else {
-                Yii::$app->session->setFlash('error-proc', 'Не удалось сохранить изменения!');
-            }
-            return $this->redirect('/settings?tab=upload-offers');
-        } elseif ($post && $post['name'] === 'get-cities' && !empty($post['query'])) {
-            $query = $post['query'];
-            $result = Cities::find()->asArray()->where(['like', 'name', $query])->limit(10)->all();
-            $result = array_map(function($item){
-                return $item['name'];
-            }, $result);
-            return json_encode($result);
-        } else return false;
-    }
-
-    private function delUserById($id)
-    {
-        $user = Users::find()->where(['id' => $id])->one();
-        if($user) {
-            if (!Yii::$app->user->isGuest && Yii::$app->user->identity->getId() != $id) {
-                return $user->delete();
-            }
-        }
-        return false;
-    }
-
     public function actionViewpdf(){
         if(Yii::$app->user->isGuest){
             return $this->redirect('/login');
@@ -182,11 +114,9 @@ class SiteController extends Controller
         FileHelper::createDirectory($pathResult);
         return PDFHandler::mergePDF($files, $pathResult . '/tmp_' . time() . '.pdf');
     }
-
     private function createEpilogPage($html){
         return $this->renderAjax('epilog-page', compact('html'));
     }
-
     private function createOptionsPage($id, $options_id, $city, $cost){
         if(!empty($options_id)) {
             $options_id = explode(' ', $options_id);
@@ -206,20 +136,14 @@ class SiteController extends Controller
             return $this->renderAjax('viewpdfnoopt', compact('options', 'city', 'cost'));
         }
     }
-
     public function actionIndex()
     {
         if(Yii::$app->user->isGuest) {
             return $this->redirect('/login');
         }
-        if (Yii::$app->request->isAjax) {
-            return $this->ajaxHandler();
-        }
-
         $cats = Category::find()->asArray()->where('id_par=0')->all();
         return $this->render('index', compact('cats'));
     }
-
     public function actionModel()
     {
         if(Yii::$app->user->isGuest){
@@ -241,7 +165,22 @@ class SiteController extends Controller
         }
         return $this->render('model', compact('models', 'breadcrumbs', 'cities'));
     }
-
+    private function settingTabAgencys()
+    {
+        /*$agencys = Users::find()->asArray()->all();
+        $usermodel = new UserForm();
+        $post = Yii::$app->request->post();
+        if(isset($post['UserForm']) && Yii::$app->user->identity->getRole() === ADMIN) {
+            if ($usermodel->load($post) && $usermodel->registration()) {
+                Yii::$app->session->setFlash('success-proc', 'Пользователь добавлен!');
+                return $this->redirect('/settings?tab=users');
+            } else {
+                Yii::$app->session->setFlash('error-proc', 'Не удалось добавить пользователя!');
+                return $this->redirect('/settings?tab=users');
+            }
+        }
+        return $this->render('settings-tab-users', compact('users', 'usermodel'));*/
+    }
     private function settingTabPrice()
     {
         $uploadmodel = new UploadForm('xlsx');
@@ -271,21 +210,22 @@ class SiteController extends Controller
         $count_mod = TModel::find()->count();
         return $this->render('settings-tab-price', compact('uploadmodel', 'count_cat', 'count_mod'));
     }
-
     private function settingTabUsers()
     {
         $users = Users::find()->asArray()->all();
         $usermodel = new UserForm();
         $post = Yii::$app->request->post();
-        if(isset($post['UserForm'])) {
+        if(isset($post['UserForm']) && Yii::$app->user->identity->getRole() === ADMIN) {
             if ($usermodel->load($post) && $usermodel->registration()) {
-                Yii::$app->session->setFlash('success-add-user', 'Пользователь добавлен!');
+                Yii::$app->session->setFlash('success-proc', 'Пользователь добавлен!');
+                return $this->redirect('/settings?tab=users');
+            } else {
+                Yii::$app->session->setFlash('error-proc', 'Не удалось добавить пользователя!');
                 return $this->redirect('/settings?tab=users');
             }
         }
         return $this->render('settings-tab-users', compact('users', 'usermodel'));
     }
-
     private function settingTabUpLoadOptions()
     {
         $model = new UploadFormCostFiles();
@@ -323,7 +263,6 @@ class SiteController extends Controller
         $count_mod = TModel::find()->count();
         return $this->render('settings-tab-upload-options', compact('model', 'count_opt', 'count_mod'));
     }
-
     private function settingTabUpLoadOffers()
     {
         $uploadmodel = new UploadForm('pdf');
@@ -375,7 +314,6 @@ class SiteController extends Controller
         $count_mod = TModel::find()->count();
         return $this->render('settings-tab-upload-offers', compact('models', 'uploadmodel', 'multiupload', 'count_mod'));
     }
-
     private function settingTabEpilog(){
         $uploadmodel = new UploadForm('pdf');
         if (Yii::$app->request->isPost) {
@@ -410,7 +348,6 @@ class SiteController extends Controller
         $epilog = Settings::findOne(['name' => 'epilog']);
         return $this->render('settings-tab-epilog', compact('uploadmodel', 'epilog'));
     }
-
     private function settingTabCities()
     {
         $model = new CityForm();
@@ -431,7 +368,6 @@ class SiteController extends Controller
         }
         return $this->render('settings-tab-cities', compact('model'));
     }
-
     public function actionSettings()
     {
         if(Yii::$app->user->isGuest){
@@ -439,15 +375,13 @@ class SiteController extends Controller
         } elseif(Yii::$app->user->identity->getRole() !== ADMIN){
             return $this->redirect('/');
         }
-        if (Yii::$app->request->isAjax) {
-            return $this->ajaxHandler();
-        }
-
         $act_tab = Yii::$app->request->get('tab');
         if(empty($act_tab)){
-            $act_tab = 'upload-price';
+            $act_tab = 'agencys';
         }
-        if($act_tab == 'upload-price'){
+        if($act_tab == 'agencys'){
+            return $this->settingTabAgencys();
+        } elseif($act_tab == 'upload-price'){
             return $this->settingTabPrice();
         } elseif($act_tab == 'upload-options') {
             return $this->settingTabUpLoadOptions();
@@ -463,28 +397,23 @@ class SiteController extends Controller
             return $this->goHome();
         }
     }
-
     public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }
-
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goHome();
         }
-
         $model->password = '';
         return $this->render('login', [
             'model' => $model,
         ]);
     }
-
     public function actionLogout()
     {
         Yii::$app->user->logout();
         return $this->goHome();
     }
 }
-
