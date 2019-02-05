@@ -8,10 +8,9 @@
 
 namespace app\models;
 
+use yii\db\ActiveRecord;
 
-use yii\base\Model;
-
-class Agency extends Model
+class Agency extends ActiveRecord
 {
 //`id` int(11) NOT NULL AUTO_INCREMENT,
 //`name` varchar(255) NOT NULL,
@@ -33,5 +32,17 @@ class Agency extends Model
         return [
             [['name', 'address'], 'trim'],
         ];
+    }
+
+    public static function findByName($name)
+    {
+        $result = Agency::find()->asArray()->where(['name' => $name])->limit(1)->all();
+        if($result && $result[0]){
+            $res = $result[0];
+            $agency = new Agency($res['name'], $res['address']);
+            $agency->id = $res['id'];
+            return $agency;
+        }
+        return null;
     }
 }

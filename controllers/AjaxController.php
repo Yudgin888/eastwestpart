@@ -8,6 +8,7 @@
 
 namespace app\controllers;
 
+use app\models\Agency;
 use app\models\Category;
 use app\models\Cities;
 use app\models\TModel;
@@ -113,7 +114,7 @@ class AjaxController extends MainController
     public function actionEditmodel()
     {
         $post = Yii::$app->request->post();
-        if ($post) {
+        if ($post && Yii::$app->user->identity->getRole() === ADMIN) {
             $model = TModel::find()->where(['id' => $post['id']])->all()[0];
             if ($model) {
                 $model->delivery = addslashes(htmlspecialchars($post['txt']));
@@ -141,5 +142,42 @@ class AjaxController extends MainController
             }, $result);
             return json_encode($result);
         } else return false;
+    }
+
+    public function actionEditagency()
+    {
+        $post = Yii::$app->request->post();
+        if ($post && !empty($post['name']) && Yii::$app->user->identity->getRole() === ADMIN) {
+            $agency = Agency::findOne(['id' => $post['id']]);
+            if ($agency) {
+                $agency->name = $post['name'];
+                $agency->update();
+                Yii::$app->session->setFlash('success-proc', 'Изменения сохранены!');
+                return true;
+            } else {
+                Yii::$app->session->setFlash('error-proc', 'Не удалось сохранить изменения!');
+                return false;
+            }
+        } else return false;
+    }
+
+    public function actionDeleteagency()
+    {
+        $post = Yii::$app->request->post();
+        $res = false;
+        if ($post && !empty($post['id']) && Yii::$app->user->identity->getRole() === ADMIN) {
+            $agency = Agency::find()->where(['id' => $post['id']])->one();
+            if ($agency) {
+                try {
+                    $res = $agency->delete();
+                } catch (\Throwable $ex) {}
+            }
+        }
+        if($res){
+            Yii::$app->session->setFlash('error-proc', 'Представительство удалено!');
+        } else {
+            Yii::$app->session->setFlash('error-proc', 'Не удалось удалить представительство!');
+        }
+        return $res;
     }
 }

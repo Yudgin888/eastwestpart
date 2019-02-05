@@ -13,6 +13,7 @@ include 'settings-header.php';
                     <th scope="col">#</th>
                     <th scope="col">Логин</th>
                     <th scope="col">Пароль</th>
+                    <th scope="col">Представительство</th>
                     <th scope="col">Группа пользователей</th>
                     <th scope="col">Действия</th>
                 </tr>
@@ -23,6 +24,14 @@ include 'settings-header.php';
                         <td scope="row"><?= $i?></td>
                         <td><?= $item['username']?></td>
                         <td>***********************</td>
+                        <?php
+                            $agency_list = [];
+                            foreach ($agencys as $agency){
+                                $agency_list[$agency['id']] = substr($agency['name'], 0, 50);
+                            }
+                            $ag = $agency_list[$item['id_agency']];
+                        ?>
+                        <td><?= (!empty($ag) ? $ag : 'Представительство не задано')?></td>
                         <td><?= ($item['role'] == 1 ? 'Admin' : ($item['role'] == 2 ? 'Manager' : ''))?></td>
                         <td>
                             <?php if(Yii::$app->user->identity->getId() != $item['id']):?>
@@ -48,6 +57,9 @@ include 'settings-header.php';
                     </td>
                     <td>
                         <?= $form->field($usermodel, 'password')->input('text')->hint('Поле не может быть пустым!'); ?>
+                    </td>
+                    <td>
+                        <?= $form->field($usermodel, 'id_agency')->dropDownList($agency_list);?>
                     </td>
                     <td>
                         <?= $form->field($usermodel, 'role')->dropDownList([

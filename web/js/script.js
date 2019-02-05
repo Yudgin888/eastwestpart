@@ -166,6 +166,56 @@ $(document).ready(function() {
         }
         e.stopPropagation();
     });
+
+    $('.agency-name .btn-edit-agency').on('click', function(e){
+        var parent = $(e.target).closest('.agency-name');
+        $(parent).find('.tab1').css('display', 'none');
+        $(parent).find('.tab2').css('display', 'block');
+    });
+
+    $('.agency-name .btn-close-agency').on('click', function(e){
+        var parent = $(e.target).closest('.agency-name');
+        $(parent).find('.tab2').css('display', 'none');
+        $(parent).find('.tab1').css('display', 'block');
+    });
+
+    $('.agency-name .btn-save-agency').on('click', function(e){
+        var parent = $(e.target).closest('.model-item');
+        var id = $(parent).data('id');
+        var name = $(parent).find('.input-edit-name').val();
+        $.ajax({
+            url: '/ajax/editagency',
+            data: {
+                id: id,
+                name: name
+            },
+            type: 'POST',
+            success: function(res){
+                location.reload();
+            },
+            error: function(){
+            }
+        });
+    });
+
+    $('.agency-block .btn-del-agency').on('click', function(e){
+        var parent = $(e.target).closest('.agency-block');
+        var elem = $(parent).find('.tab1 p')[0];
+        if(confirm('Удалить представительство: ' + elem.innerText + '?')){
+            var id = $(parent).data('id');
+            $.ajax({
+                url: '/ajax/deleteagency',
+                data: {
+                    id: id,
+                },
+                type: 'POST',
+                success: function(){
+                },
+                error: function(){
+                }
+            });
+        }
+    });
 });
 
 function key_activate(keyCode, suggest_count, parent){
@@ -230,17 +280,20 @@ function checkAvailableBtnLoadPrice(){
 function delUser(e){
     var tr = $(e.target).closest('tr')[0];
     var id = $(tr).data('id');
-    $.ajax({
-        url: '/ajax/deleteuser',
-        data: {
-            id: id
-        },
-        type: 'POST',
-        success: function(){
-        },
-        error: function(){
-        }
-    });
+    var elem = $(tr).find('td:nth-child(2)')[0];
+    if(confirm('Удалить пользователя: ' + elem.innerText + '?')) {
+        $.ajax({
+            url: '/ajax/deleteuser',
+            data: {
+                id: id
+            },
+            type: 'POST',
+            success: function () {
+            },
+            error: function () {
+            }
+        });
+    }
 }
 
 function getSubCat(id, ism){

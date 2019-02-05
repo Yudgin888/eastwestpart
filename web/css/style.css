@@ -74,7 +74,7 @@
     text-align: left;
 }
 
-.model-item .btn-load-price, .model-item .btn-open-offer, .model-item .btn-no-basic-pdf {
+.model-item .btn-load-price, .model-item .btn-open-offer, .model-item .btn-no-basic-pdf, .model-item .no-active-no-basic-pdf {
     width: 350px;
     vertical-align: middle;
     padding: 5px;
@@ -127,12 +127,12 @@
     text-align: left;
 }
 
-.search_advice_wrapper .advice_variant:hover{
+.search_advice_wrapper .advice_variant:hover {
     color:#FEFFBD;
     background-color:#818187;
 }
 
-.search_advice_wrapper .active{
+.search_advice_wrapper .active {
     cursor: pointer;
     padding: 5px;
     color:#FEFFBD;
@@ -141,4 +141,30 @@
 
 .city-delivery .input-group {
     width: 100%;
+}
+
+.agency-name {
+    display: inline-block;
+    width: 80%;
+}
+
+.agency-name button {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.agency-name .tab1 p {
+    display: inline-block;
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    width: 80%;
+    word-wrap: break-word;
+}
+
+.agency-name .tab2 {
+    display: none;
+}
+
+.btn-del-agency {
+    float: right;
 }

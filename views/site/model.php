@@ -14,11 +14,16 @@ $this->title = 'Создание КП | Выбор модели';
             $opt = $model['option'];?>
         <div class="model-item model-item-main" data-id="<?= $model['id']?>">
             <h2>- Модель <?= $model['name']?></h2>
-            <?php if(!empty($model['offer_path'])):?>
-                <button class="btn-open-offer" title="Открыть pdf"><b>КП</b> - Характеристики, базовая информация<br> и перечень доступных опций</button>
-            <?php else:?>
-                <button class="btn-no-basic-pdf" title="На страницу загрузки">Для модели не загружен базовый pdf-файл</button>
-            <?php endif;?>
+
+                <?php if(!empty($model['offer_path'])):?>
+                    <button class="btn-open-offer" title="Открыть pdf"><b>КП</b> - Характеристики, базовая информация<br> и перечень доступных опций</button>
+                <?php else:?>
+                    <?php if(Yii::$app->user->identity->getRole() === ADMIN):?>
+                        <button class="btn-no-basic-pdf" title="На страницу загрузки">Для модели не загружен базовый pdf-файл</button>
+                    <?php else: ?>
+                        <button class="no-active-no-basic-pdf">Для модели не загружен базовый pdf-файл. Загрузить файл можно в меню настроек (доступен только для администратора)</button>
+                    <?php endif;?>
+                <?php endif;?>
 
             <div class="model-content">
                 <div class="model-options">
@@ -44,11 +49,16 @@ $this->title = 'Создание КП | Выбор модели';
                     </div>
                 </div>
             </div>
-            <?php if(!empty($model['offer_path'])):?>
-                <button class="btn-load-price" title="Открыть pdf"><b>КП</b> - Характеристики, базовая комплектация,<br> выбранные опции и стоимость</button>
-            <?php else:?>
-                <button class="btn-no-basic-pdf" title="На страницу загрузки">Для модели не загружен базовый pdf-файл</button>
-            <?php endif;?>
+
+                <?php if(!empty($model['offer_path'])):?>
+                    <button class="btn-load-price" title="Открыть pdf"><b>КП</b> - Характеристики, базовая комплектация,<br> выбранные опции и стоимость</button>
+                <?php else:?>
+                    <?php if(Yii::$app->user->identity->getRole() === ADMIN):?>
+                        <button class="btn-no-basic-pdf" title="На страницу загрузки">Для модели не загружен базовый pdf-файл</button>
+                    <?php else: ?>
+                        <button class="no-active-no-basic-pdf">Для модели не загружен базовый pdf-файл. Загрузить файл можно в меню настроек (доступен только для администратора)</button>
+                    <?php endif;?>
+                <?php endif;?>
         </div>
             <hr>
         <?php endforeach;?>
