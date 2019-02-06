@@ -29,7 +29,10 @@ include 'settings-header.php';
                             foreach ($agencys as $agency){
                                 $agency_list[$agency['id']] = substr($agency['name'], 0, 50);
                             }
-                            $ag = $agency_list[$item['id_agency']];
+                            $ag = null;
+                            if(!empty($item['id_agency'])) {
+                                $ag = $agency_list[$item['id_agency']];
+                            }
                         ?>
                         <td><?= (!empty($ag) ? $ag : 'Представительство не задано')?></td>
                         <td><?= ($item['role'] == 1 ? 'Admin' : ($item['role'] == 2 ? 'Manager' : ''))?></td>

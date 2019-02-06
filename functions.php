@@ -77,7 +77,10 @@ function parseArr($cat, $parent_id = 0, &$cats_count, &$mdl_count){
             foreach ($cat['models'] as $model){
                 $name = $model['0'];
                 $parameters = $model['1'];
-                $price = $model['2'];
+                $price = '';
+                if(isset($model['2'])) {
+                    $price = $model['2'];
+                }
                 $model = new \app\models\TModel($name, $parameters, $price, $id);
                 if(!$model->save()) return false;
                 $mdl_count++;
