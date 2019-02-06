@@ -38,7 +38,7 @@ AppAsset::register($this);
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
-            (Yii::$app->user->identity->getRole() === MANAGER && !empty($agency = \app\models\Agency::findOne(['id' => Yii::$app->user->identity->getAgencyId()]))) ? (
+            (!Yii::$app->user->isGuest && Yii::$app->user->identity->getRole() === MANAGER && !empty($agency = \app\models\Agency::findOne(['id' => Yii::$app->user->identity->getAgencyId()]))) ? (
             ['label' => substr($agency->name, 0, 100)]
             ) : '',
             (!Yii::$app->user->isGuest && Yii::$app->user->identity->getRole() == ADMIN) ? (

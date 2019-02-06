@@ -33,6 +33,7 @@ include 'settings-header.php';
                             <li class="active"><?= $cats['0']['name']?></li>
                         </ol>
                         <h2>Модель: <?= $model['name']?></h2>
+                        <?= \yii\helpers\Html::submitButton('Удалить модель', ['class' => 'btn-del-model btn btn-danger', 'name' => 'del-button', 'title' => 'Удалить']) ?>
                         <div>
                             <div class="edit-model-left">
                                 <?php if(!empty($model['offer_path'])):?>

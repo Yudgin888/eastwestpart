@@ -25,6 +25,22 @@ $this->title = 'Создание КП | Выбор модели';
                     <?php endif;?>
                 <?php endif;?>
 
+            <?php
+                if(Yii::$app->user->identity->getRole() === ADMIN):?>
+                    <div class="select-agency">
+                        <p class="h-select-agency">Сформировать от представительства:</p>
+                        <?php if(count($agencys) > 0):?>
+                        <select>
+                            <?php $selected = true; foreach($agencys as $agency):?>
+                                <option value="<?= $agency['id']?>" <?= ($selected ? 'selected' : '')?>><?= $agency['name']?></option>
+                            <?php $selected = false; endforeach;?>
+                        </select>
+                        <?php else:?>
+                            <p>Представительств не найдено!</p>
+                        <?php endif;?>
+                    </div>
+            <?php endif;?>
+
             <div class="model-content">
                 <div class="model-options">
                     <h2>Опции</h2>

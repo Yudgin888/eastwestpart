@@ -37,7 +37,12 @@ $(document).ready(function() {
     $('.btn-open-offer').on('click', function(e){
         var model = $(e.target).closest('.model-item');
         var model_id = $(model).data('id');
-        window.open('/viewpdf?id=' + model_id, '_blank');
+        var id_agency = $(model).find('.select-agency option:selected').val();
+        var agency_str = '';
+        if(id_agency){
+            agency_str = '&id_agency=' + id_agency;
+        }
+        window.open('/viewpdf?id=' + model_id + agency_str, '_blank');
     });
 
     $('.btn-save-delvr').on('click', function(e){
@@ -210,6 +215,55 @@ $(document).ready(function() {
                 },
                 type: 'POST',
                 success: function(){
+                    location.reload();
+                },
+                error: function(){
+                }
+            });
+        }
+    });
+
+    $('.btn-model-cat-remove').on('click', function(e){
+        if(confirm('Вы уверены?')){
+            $.ajax({
+                url: '/ajax/modelcatremove',
+                type: 'POST',
+                success: function(){
+                    location.reload();
+                },
+                error: function(){
+                }
+            });
+        }
+    });
+
+    $('.btn-option-remove').on('click', function(e){
+        if(confirm('Вы уверены?')){
+            $.ajax({
+                url: '/ajax/optionremove',
+                type: 'POST',
+                success: function(){
+                    location.reload();
+                },
+                error: function(){
+                }
+            });
+        }
+    });
+
+    $('.btn-del-model').on('click', function(e){
+        var parent = $(e.target).closest('.model-item');
+        var elem = $(parent).find('h2')[0];
+        if(confirm('Удалить: ' + elem.innerText + '?')){
+            var id = $(parent).data('id');
+            $.ajax({
+                url: '/ajax/deletemodel',
+                data: {
+                    id: id,
+                },
+                type: 'POST',
+                success: function(){
+                    location.reload();
                 },
                 error: function(){
                 }
@@ -246,7 +300,12 @@ function openPdfWithOptions(e) {
     }
     var city = $(model).find('.city-input').val();
     var cost = $(model).find('.cost-delivery input').val();
-    var url = '/viewpdf?id=' + model_id + '&opts=' + options_id.join('+') + '&city=' + city + '&cost=' + cost;
+    var id_agency = $(model).find('.select-agency option:selected').val();
+    var agency_str = '';
+    if(id_agency){
+        agency_str = '&id_agency=' + id_agency;
+    }
+    var url = '/viewpdf?id=' + model_id + '&opts=' + options_id.join('+') + '&city=' + city + '&cost=' + cost + agency_str;
     window.open(url, '_blank');
 }
 

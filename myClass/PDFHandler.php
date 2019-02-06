@@ -33,14 +33,15 @@ class PDFHandler
         return file_put_contents($filepath, $output);
     }
 
-    public static function mergePDF($files, $pathResult, $mode = 'browser'){
+    public static function mergePDF($files, $pathResult, $mode = 'file'){
         $pdf = new \PDFMerger\PDFMerger();
         //REPLACE 'file' WITH 'browser', 'download', 'string', or 'file' for output options
         //You do not need to give a file path for browser, string, or download - just the name.
         foreach($files as $file){
             $pdf->addPDF($file);
         }
-        return $pdf->merge($mode, $pathResult);
+        $pdf->merge($mode, $pathResult);
+        return $pdf->merge('browser', $pathResult);
     }
 
     /*public static function separatePDF($fileName){

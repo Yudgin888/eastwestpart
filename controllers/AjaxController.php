@@ -11,6 +11,8 @@ namespace app\controllers;
 use app\models\Agency;
 use app\models\Category;
 use app\models\Cities;
+use app\models\Logs;
+use app\models\Option;
 use app\models\TModel;
 use app\models\Users;
 use Yii;
@@ -87,7 +89,9 @@ class AjaxController extends MainController
     {
         $post = Yii::$app->request->post();
         if ($post && Yii::$app->user->identity->getRole() === ADMIN) {
+            $user = Users::find()->where(['id' => $post['id']])->one();
             if ($this->delUserById($post['id'])) {
+                Logs::addLog(Yii::$app->user->identity->username . ' удалил пользователя: ' . $user->username, 2);
                 Yii::$app->session->setFlash('success-proc', 'Пользователь удален!');
             } else {
                 Yii::$app->session->setFlash('error-proc', 'Не удалось удалить пользователя!');
@@ -169,15 +173,78 @@ class AjaxController extends MainController
             $agency = Agency::find()->where(['id' => $post['id']])->one();
             if ($agency) {
                 try {
+                    $agency_name = $agency->name;
                     $res = $agency->delete();
+                    Logs::addLog(Yii::$app->user->identity->username . ' удалил представительство: ' . $agency_name, 2);
                 } catch (\Throwable $ex) {}
             }
         }
         if($res){
-            Yii::$app->session->setFlash('error-proc', 'Представительство удалено!');
+            Yii::$app->session->setFlash('success-proc', 'Представительство удалено!');
         } else {
             Yii::$app->session->setFlash('error-proc', 'Не удалось удалить представительство!');
         }
         return $res;
+    }
+
+    public function actionModelcatremove()
+    {
+        $res1 = false;
+        $res2 = false;
+        if (Yii::$app->request->isAjax && Yii::$app->user->identity->getRole() === ADMIN) {
+            $res1 = Category::deleteAll();
+            $res2 = TModel::deleteAll();
+        }
+        if($res1){
+            Logs::addLog(Yii::$app->user->identity->username . ' удалил все категории', 2);
+            Yii::$app->session->setFlash('success-proc', 'Все категории удалены!');
+        } else {
+            Yii::$app->session->setFlash('error-proc', 'Не удалось удалить категории!');
+        }
+        if($res2){
+            Logs::addLog(Yii::$app->user->identity->username . ' удалил все модели', 2);
+            Yii::$app->session->setFlash('success-load', 'Все модели удалены!');
+        } else {
+            Yii::$app->session->setFlash('error-load', 'Не удалось удалить модели!');
+        }
+        return $res1 && $res2;
+    }
+
+    public function actionOptionremove()
+    {
+        $res1 = false;
+        if (Yii::$app->request->isAjax && Yii::$app->user->identity->getRole() === ADMIN) {
+            $res1 = Option::deleteAll();
+        }
+        if($res1){
+            Logs::addLog(Yii::$app->user->identity->username . ' удалил все опции', 2);
+            Yii::$app->session->setFlash('success-proc', 'Все опции удалены!');
+        } else {
+            Yii::$app->session->setFlash('error-proc', 'Не удалось удалить опции!');
+        }
+        return $res1;
+    }
+
+    public function actionDeletemodel()
+    {
+        $res1 = false;
+        $post = Yii::$app->request->post();
+        $model_name = '';
+        if (Yii::$app->request->isAjax && Yii::$app->user->identity->getRole() === ADMIN && $post) {
+            $model = TModel::find()->where(['id' => $post['id']])->one();
+            if ($model) {
+                try {
+                    $model_name = $model->name;
+                    $res1 = $model->delete();
+                } catch (\Throwable $ex) {}
+            }
+        }
+        if($res1){
+            Logs::addLog(Yii::$app->user->identity->username . " удалил модел: {$model_name}", 2);
+            Yii::$app->session->setFlash('success-proc', "Модель '{$model_name}' удалена!");
+        } else {
+            Yii::$app->session->setFlash('error-proc', "Не удалось удалить модель: '{$model_name}'!");
+        }
+        return $res1;
     }
 }

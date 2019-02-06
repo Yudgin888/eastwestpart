@@ -47,5 +47,6 @@ $this->title = 'Создание КП | Настройки';
             <li data-tag="upload-epilog" class="<?= ($act_tab == 'upload-epilog') ? 'active' : ''?>"><a href="?tab=upload-epilog">Загрузка эпилога</a></li>
             <li data-tag="users" class="<?= ($act_tab == 'users') ? 'active' : ''?>"><a href="?tab=users">Пользователи</a></li>
             <li data-tag="cities" class="<?= ($act_tab == 'cities') ? 'active' : ''?>"><a href="?tab=cities">Населенные пункты</a></li>
+            <li data-tag="logs" class="<?= ($act_tab == 'logs') ? 'active' : ''?>"><a href="?tab=logs">Логи</a></li>
         </ul>
 

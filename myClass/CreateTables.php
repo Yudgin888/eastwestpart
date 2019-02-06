@@ -93,38 +93,36 @@ class CreateTables
                 );";
             $db->createCommand($sql)->execute();
         }
-    }
-    public static function reset(){
-        self::up();
-        $db = \Yii::$app->getDb();
-        $sql = "DELETE FROM `cr_of_category`";
-        $db->createCommand($sql)->execute();
-        $sql = "DELETE FROM `cr_of_model`";
-        $db->createCommand($sql)->execute();
-        $sql = "DELETE FROM `cr_of_option`";
-        $db->createCommand($sql)->execute();
-    }
-    public static function down()
-    {
-        $db = \Yii::$app->db;
-        if ($db->getTableSchema('cr_of_model', true) !== null) {
-            try {
-                $db->createCommand()->dropTable('cr_of_model')->execute();
-            } catch (Exception $e){}
-        }
-        if ($db->getTableSchema('cr_of_category', true) !== null) {
-            try {
-                $db->createCommand()->dropTable('cr_of_category')->execute();
-            } catch (Exception $e){}
+        if ($db->getTableSchema('cr_of_logs', true) === null) {
+            $sql = "
+                CREATE TABLE `cr_of_logs` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `date` varchar(255) NOT NULL,
+                  `message` longtext,
+                  `status` int(11) DEFAULT 0,
+                  PRIMARY KEY (`id`)
+                );";
+            $db->createCommand($sql)->execute();
         }
     }
-    public static function downOptions()
-    {
-        $db = \Yii::$app->db;
-        if ($db->getTableSchema('cr_of_option', true) !== null) {
-            try {
-                $db->createCommand()->dropTable('cr_of_option')->execute();
-            } catch (Exception $e){}
-        }
-    }
+//    public static function reset(){
+//        self::up();
+//        $db = \Yii::$app->getDb();
+//        $sql = "DELETE FROM `cr_of_category`";
+//        $db->createCommand($sql)->execute();
+//        $sql = "DELETE FROM `cr_of_model`";
+//        $db->createCommand($sql)->execute();
+//        $sql = "DELETE FROM `cr_of_option`";
+//        $db->createCommand($sql)->execute();
+//    }
+//
+//    public static function downOptions()
+//    {
+//        $db = \Yii::$app->db;
+//        if ($db->getTableSchema('cr_of_option', true) !== null) {
+//            try {
+//                $db->createCommand()->dropTable('cr_of_option')->execute();
+//            } catch (Exception $e){}
+//        }
+//    }
 }

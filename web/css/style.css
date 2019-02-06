@@ -168,3 +168,23 @@
 .btn-del-agency {
     float: right;
 }
+
+.select-agency {
+    margin-top: 20px;
+}
+
+.select-agency .h-select-agency {
+    font-size: 16px;
+}
+
+.btn-edit-agency {
+    float: right;
+}
+
+.model-item h2 {
+    display: inline-block;
+    width: auto;
+    margin-bottom: 20px;
+    margin-right: 50px;
+
+}

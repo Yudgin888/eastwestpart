@@ -6,11 +6,14 @@ use app\models\AgencyForm;
 use app\models\Category;
 use app\models\Cities;
 use app\models\CityForm;
+use app\models\Logs;
+use app\models\LogsSearch;
 use app\models\Option;
 use app\models\Settings;
 use app\models\TModel;
 use app\models\UploadFormCostFiles;
 use app\models\UploadOffers;
+use app\models\User;
 use app\models\UserForm;
 use app\models\Users;
 use app\myClass\PDFHandler;
@@ -71,6 +74,8 @@ class SiteController extends MainController
         return true;
     }
 
+
+    //формирование pdf
     public function actionViewpdf(){
         if(Yii::$app->user->isGuest){
             return $this->redirect('/login');
@@ -79,6 +84,21 @@ class SiteController extends MainController
         if(empty($id)){
             return $this->goBack();
         }
+
+        $id_agency = '';
+        if(Yii::$app->user->identity->getRole() === ADMIN) {
+            $id_agency = Yii::$app->request->get('id_agency');
+        } else {
+            $id_agency = Yii::$app->user->identity->id_agency;
+        }
+
+        //блок с шапкой
+        $files = [];
+        $agency = Agency::findOne(['id' => $id_agency]);
+        $header_path = $agency->address;
+        $files[] = $header_path;
+
+        //формирование блока с опциями
         $model = TModel::find()->asArray()->where('id=' . $id)->all()[0];
         if(empty($model)){
             return $this->goBack();
@@ -87,7 +107,6 @@ class SiteController extends MainController
         $options_id = Yii::$app->request->get('opts');
         $city = Yii::$app->request->get('city');
         $cost = Yii::$app->request->get('cost');
-
         $htmlPage = $this->createOptionsPage($id, $options_id, $city, $cost);
         $pdfhandler_path = Yii::getAlias('@app/pdfhandler_tmp');
         if (!file_exists($pdfhandler_path)) {
@@ -98,16 +117,20 @@ class SiteController extends MainController
             FileHelper::createDirectory($tmp_path);
         }
         $tmp_path .= '/pdf_' . time() . '.pdf';
-        $files = [];
+
+        //блок с общей информацией
         if(!empty($model['offer_path'])){
             $files[] = Yii::getAlias('@app/web/') . $model['offer_path'];
         }
+
+        //блок с опциями
         if($htmlPage) {
             if(PDFHandler::createPDFFile($htmlPage, $tmp_path)) {
                 $files[] = $tmp_path;
             }
         }
 
+        //формирование блока с доставкой и оплатой
         if(!empty(trim($model['delivery']))){
             $epilog_path = $pdfhandler_path . '/tmp/pdf_epilog_' . time() . '.pdf';
             $html = $this->createEpilogPage(htmlspecialchars_decode(stripslashes($model['delivery'])));
@@ -121,12 +144,19 @@ class SiteController extends MainController
             }
         }
 
-        $pathResult = $pdfhandler_path . '/resultmerge';
-        //FileHelper::removeDirectory($pathResult);
+        $pathResult = Yii::getAlias('@app/web/uploads/pdf_offers');
         if (!file_exists($pathResult)) {
             FileHelper::createDirectory($pathResult);
         }
-        return PDFHandler::mergePDF($files, $pathResult . '/tmp_' . time() . '.pdf');
+        $name_res_pdf = "/{$model['id']}_" . time() . ".pdf";
+        $url = '/uploads/pdf_offers' . $name_res_pdf;
+        $pathResult = $pathResult . $name_res_pdf;
+        $res = PDFHandler::mergePDF($files, $pathResult);
+        if($res){
+            /*Logs::addLog(Yii::$app->user->identity->username . ' сформировал КП: <a href="' . $url . '">' . $url . '</a>', 1);*/
+            Logs::addLog(Yii::$app->user->identity->username . ' сформировал КП: ' . $url, 1);
+        }
+        return $res;
     }
 
     private function createEpilogPage($html){
@@ -181,7 +211,8 @@ class SiteController extends MainController
                 return $item['name'];
             }, $cities);
         }
-        return $this->render('model', compact('models', 'breadcrumbs', 'cities'));
+        $agencys = Agency::find()->asArray()->all();
+        return $this->render('model', compact('models', 'breadcrumbs', 'cities', 'agencys'));
     }
 
     private function settingTabAgencys()
@@ -261,7 +292,7 @@ class SiteController extends MainController
                 } else {
                     Yii::$app->session->setFlash('error-proc', 'Не удалось обработать файл!');
                 }
-                return $this->redirect('/settings');
+                return $this->redirect('/settings?tab=upload-price');
             }
         }
         $count_cat = Category::find()->count();
@@ -411,6 +442,7 @@ class SiteController extends MainController
         $epilog = Settings::findOne(['name' => 'epilog']);
         return $this->render('settings-tab-epilog', compact('uploadmodel', 'epilog'));
     }
+
     private function settingTabCities()
     {
         $model = new CityForm();
@@ -431,6 +463,15 @@ class SiteController extends MainController
         }
         return $this->render('settings-tab-cities', compact('model'));
     }
+
+    private function settingTabLogs()
+    {
+        $searchModel = new LogsSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $logs = Logs::find()->asArray()->all();
+        return $this->render('settings-tab-logs', compact('logs', 'dataProvider'));
+    }
+
     public function actionSettings()
     {
         if(Yii::$app->user->isGuest){
@@ -456,10 +497,13 @@ class SiteController extends MainController
             return $this->settingTabUsers();
         } elseif($act_tab == 'cities') {
             return $this->settingTabCities();
+        } elseif($act_tab == 'logs') {
+            return $this->settingTabLogs();
         } else {
             return $this->goHome();
         }
     }
+
     public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
@@ -474,6 +518,7 @@ class SiteController extends MainController
             'model' => $model,
         ]);
     }
+
     public function actionLogout()
     {
         Yii::$app->user->logout();

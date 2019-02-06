@@ -5,6 +5,8 @@ include 'settings-header.php';
     <div class="setting-tab-item upload-cost">
         <p>Всего опций: <?= $count_opt?></p>
         <p>Моделей в базе: <?= $count_mod?></p>
+        <button class="btn btn-danger btn-option-remove">Удалить все опции из базы данных</button>
+        <hr>
         <?php if($count_mod == 0):?>
             <p>Перед загрузкой опций для начала загрузите список категорий и моделей (опция привязывается к определенной модели)</p>
             <a href="/settings?tab=upload-price">Загрузка прайса</a>

@@ -2,20 +2,6 @@
 
 use app\myClass\CreateTables;
 
-function resetTable(){
-    try {
-        $db = \Yii::$app->getDb();
-        if(empty($db)){
-            echo 'Error connection DB';
-            die;
-        }
-        CreateTables::reset();
-    } catch (Exception $e) {
-        echo $e->getMessage();
-        die;
-    }
-}
-
 function parseCostFile($fileName){
     $option_count = 0;
     try {
@@ -51,6 +37,7 @@ function parseCostFile($fileName){
             'mess' => $ex->getMessage(),
         ];
     }
+    \app\models\Logs::addLog(Yii::$app->user->identity->username . " обновил список опций (добавлено: {$option_count}", 2);
     return [
         'code' => 'success',
         'mess' => $option_count,
@@ -59,7 +46,7 @@ function parseCostFile($fileName){
 
 
 function loadPrice($fileName){
-    resetTable();
+    //resetTable();
     $cats = parsePrice($fileName);
     $cats_count = 0;
     $mdl_count = 0;
@@ -70,6 +57,7 @@ function loadPrice($fileName){
             }
         }
     }
+    \app\models\Logs::addLog(Yii::$app->user->identity->username . " обновил список моделей и категорий (моделей: {$mdl_count}, категорий: {$cats_count}", 2);
     return [
         'cats_count' => $cats_count,
         'mdl_count' => $mdl_count,
