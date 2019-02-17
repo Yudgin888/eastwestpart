@@ -4,7 +4,7 @@ namespace app\models;
 
 use yii\base\Model;
 
-class UploadForm extends Model
+class UploadForm2 extends Model
 {
     public $file;
     public $hidden1;

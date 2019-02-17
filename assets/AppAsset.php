@@ -23,9 +23,11 @@ class AppAsset extends AssetBundle
         'css/site.css',
         'css/style.css',
         'css/pdf.css',
+        'http://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css'
     ];
     public $js = [
         'js/script.js',
+        'http://code.jquery.com/ui/1.12.1/jquery-ui.js',
     ];
     public $depends = [
         'yii\web\YiiAsset',

@@ -18,7 +18,7 @@ class Category extends ActiveRecord
         return 'cr_of_category';
     }
 
-    public function __construct($name, $num, $info, $id_par, $ism)
+    public function __construct($name = '', $num = '', $info = '', $id_par = 0, $ism = 0)
     {
         parent::__construct();
         $this->name = $name;
@@ -33,7 +33,7 @@ class Category extends ActiveRecord
         return [
             [['name', 'id_par'], 'required'],
             [['info', 'name'], 'trim'],
-            [['ism', 'num'], 'safe'],
+            [['id', 'ism', 'num'], 'safe'],
         ];
     }
 }

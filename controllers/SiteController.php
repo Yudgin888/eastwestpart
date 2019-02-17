@@ -13,7 +13,6 @@ use app\models\Settings;
 use app\models\TModel;
 use app\models\UploadFormCostFiles;
 use app\models\UploadOffers;
-use app\models\User;
 use app\models\UserForm;
 use app\models\Users;
 use app\myClass\PDFHandler;
@@ -24,6 +23,7 @@ use yii\helpers\FileHelper;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\UploadForm;
+use app\models\UploadForm2;
 use yii\web\UploadedFile;
 
 include(Yii::getAlias('@app/functions.php'));
@@ -131,16 +131,19 @@ class SiteController extends MainController
         }
 
         //формирование блока с доставкой и оплатой
-        if(!empty(trim($model['delivery']))){
+        if(!empty($agency->footer)){
+            $files[] = $agency->footer;
+        }
+        elseif(!empty(trim($model['delivery']))){
             $epilog_path = $pdfhandler_path . '/tmp/pdf_epilog_' . time() . '.pdf';
             $html = $this->createEpilogPage(htmlspecialchars_decode(stripslashes($model['delivery'])));
             if(PDFHandler::createPDFFile($html, $epilog_path)) {
                 $files[] = $epilog_path;
             }
         } else {
-            $epilog = Settings::find()->asArray()->where(['name' => 'epilog'])->all()[0];
-            if (!empty($epilog) && !empty($epilog['value'])) {
-                $files[] = Yii::getAlias('@app/web/') . $epilog['value'];
+            $epilog = Settings::find()->asArray()->where(['name' => 'epilog'])->all();
+            if (count($epilog) > 0 && !empty($epilog[0]) && !empty($epilog[0]['value'])) {
+                $files[] = Yii::getAlias('@app/web/') . $epilog[0]['value'];
             }
         }
 
@@ -215,42 +218,101 @@ class SiteController extends MainController
         return $this->render('model', compact('models', 'breadcrumbs', 'cities', 'agencys'));
     }
 
+    private function settingTabCategories()
+    {
+        $linecategories = Category::find()->asArray()->all();
+        $categories = CreateTree($linecategories);
+        return $this->render('settings-tab-categories', compact('categories', 'linecategories'));
+    }
+
+
     private function settingTabAgencys()
     {
         $agencyform = new AgencyForm();
         $uploadmodel = new UploadForm('pdf');
+        $uploadmodel_footer = new UploadForm2('pdf', true);
         $post = Yii::$app->request->post();
         if ($post && Yii::$app->user->identity->getRole() === ADMIN) {
-            $nameAgency = $_POST['AgencyForm']['name'];
-            $id = $_POST['UploadForm']['hidden1'];
-            if($id === 'add-new' && !$agencyform->validateName($nameAgency)){
-                Yii::$app->session->setFlash('error-proc', "Представительство с таким названием уже существует ({$nameAgency})!");
-                return $this->redirect('/settings?tab=agencys');
+            $id = isset($_POST['UploadForm']) ? $_POST['UploadForm']['hidden1'] : (isset($_POST['UploadForm2']) ? $_POST['UploadForm2']['hidden1'] : null);
+            if(isset($_POST['AgencyForm']) && isset($_POST['AgencyForm']['name'])) {
+                $nameAgency = $_POST['AgencyForm']['name'];
+                if ($id === 'add-new' && !$agencyform->validateName($nameAgency)) {
+                    Yii::$app->session->setFlash('error-proc', "Представительство с таким названием уже существует ({$nameAgency})!");
+                    return $this->redirect('/settings?tab=agencys');
+                }
             }
 
             $uploadmodel->file = UploadedFile::getInstance($uploadmodel, 'file');
-            if ($uploadmodel->file && $uploadmodel->validate()) {
+            $uploadmodel_footer->file = UploadedFile::getInstance($uploadmodel_footer, 'file');
+
+            if(isset($_POST['UploadForm2']) && empty($_POST['UploadForm'])){
+                if ($uploadmodel_footer->file && $uploadmodel_footer->validate()) {
+                    $path = Yii::getAlias('@app/web/uploads/footers');
+                    if (!is_dir($path)) {
+                        FileHelper::createDirectory($path);
+                    }
+                    $name = $uploadmodel_footer->file->baseName . '_' . time() . '.' . $uploadmodel_footer->file->extension;
+                    $filename = $path . '/' . $name;
+                    $urlpath_footer = 'uploads/footers/' . $name;
+                    if ($uploadmodel_footer->file->saveAs($filename)){
+                        Yii::$app->session->setFlash('success-load-2', 'Файл ' . $uploadmodel_footer->file->baseName . '.' . $uploadmodel_footer->file->extension . ' успешно загружен!');
+                        try {
+                            $agency = Agency::findOne(['id' => $id]);
+                            if ($agency) {
+                                $agency->footer = $urlpath_footer;
+                                $agency->update();
+                                Yii::$app->session->setFlash('success-proc', 'Изменения сохранены!');
+                            }
+                        } catch (Exception $ex){
+                            Yii::$app->session->setFlash('error-proc', 'Ошибка записи в базу данных');
+                        }
+                    } else {
+                        Yii::$app->session->setFlash('error-load-2', 'Файл ' . $uploadmodel_footer->file->baseName . '.' . $uploadmodel_footer->file->extension . ' не удалось загрузить!');
+                    }
+                }
+            } elseif ($uploadmodel->file && $uploadmodel->validate()) {
                 $path = Yii::getAlias('@app/web/uploads/headers');
                 if (!is_dir($path)) {
                     FileHelper::createDirectory($path);
                 }
                 $name = $uploadmodel->file->baseName . '_' . time() . '.' . $uploadmodel->file->extension;
                 $filename = $path . '/' . $name;
-                $urlpath = 'uploads/headers/' . $name;
+                $urlpath_header = 'uploads/headers/' . $name;
+                $urlpath_footer = '';
                 if ($uploadmodel->file->saveAs($filename)) {
+
+                    if ($uploadmodel_footer->file && $uploadmodel_footer->validate()) {
+                        $path = Yii::getAlias('@app/web/uploads/footers');
+                        if (!is_dir($path)) {
+                            FileHelper::createDirectory($path);
+                        }
+                        $name = $uploadmodel_footer->file->baseName . '_' . time() . '.' . $uploadmodel_footer->file->extension;
+                        $filename = $path . '/' . $name;
+                        $urlpath_footer = 'uploads/footers/' . $name;
+                        if ($uploadmodel_footer->file->saveAs($filename)){
+                            Yii::$app->session->setFlash('success-load-2', 'Файл ' . $uploadmodel_footer->file->baseName . '.' . $uploadmodel_footer->file->extension . ' успешно загружен!');
+                        } else {
+                            Yii::$app->session->setFlash('error-load-2', 'Файл ' . $uploadmodel_footer->file->baseName . '.' . $uploadmodel_footer->file->extension . ' не удалось загрузить!');
+                            $urlpath_footer = null;
+                        }
+                    }
+
                     try {
                         $agency = Agency::findOne(['id' => $id]);
                         if ($agency) {
                             if(!empty($nameAgency)) {
                                 $agency->name = $nameAgency;
                             }
-                            if(!empty($urlpath)) {
-                                $agency->address = $urlpath;
+                            if(!empty($urlpath_header)) {
+                                $agency->address = $urlpath_header;
+                            }
+                            if(!empty($urlpath_footer)) {
+                                $agency->footer = $urlpath_footer;
                             }
                             $agency->update();
                             Yii::$app->session->setFlash('success-proc', 'Изменения сохранены!');
                         } else {
-                            $agency = new Agency($nameAgency, $urlpath);
+                            $agency = new Agency($nameAgency, $urlpath_header, $urlpath_footer);
                             $agency->save();
                             Yii::$app->session->setFlash('success-proc', 'Представительство добавлено!');
                         }
@@ -266,7 +328,7 @@ class SiteController extends MainController
             return $this->redirect('/settings?tab=agencys');
         }
         $agencys = Agency::find()->asArray()->all();
-        return $this->render('settings-tab-agency', compact('agencys', 'agencyform', 'uploadmodel'));
+        return $this->render('settings-tab-agency', compact('agencys', 'agencyform', 'uploadmodel', 'uploadmodel_footer'));
     }
 
     private function settingTabPrice()
@@ -287,8 +349,8 @@ class SiteController extends MainController
                 }
                 $result = loadPrice($filename);
                 if ($result) {
-                    Yii::$app->session->setFlash('success-proc', 'Файл успешно обработан! Добавлено: ' . $result['cats_count'] . ' ' . getNumEnding($result['cats_count'], ['категория', 'категории', 'категорий'])
-                        . ', ' . $result['mdl_count'] . ' ' . getNumEnding($result['mdl_count'], ['модель', 'модели', 'моделей']));
+                    Yii::$app->session->setFlash('success-proc', 'Файл успешно обработан! Добавлено: ' . $result['cats_add'] . ' ' . getNumEnding($result['cats_add'], ['категория', 'категории', 'категорий'])
+                        . ' (обновлено: ' . $result['cats_upd'] . '), ' . $result['mdl_add'] . ' ' . getNumEnding($result['mdl_add'], ['модель', 'модели', 'моделей']) . ' (обновлено: ' . $result['mdl_upd'] . ')');
                 } else {
                     Yii::$app->session->setFlash('error-proc', 'Не удалось обработать файл!');
                 }
@@ -485,7 +547,9 @@ class SiteController extends MainController
         }
         if($act_tab == 'agencys'){
             return $this->settingTabAgencys();
-        } elseif($act_tab == 'upload-price'){
+        } elseif($act_tab == 'categories'){
+            return $this->settingTabCategories();
+        }elseif($act_tab == 'upload-price'){
             return $this->settingTabPrice();
         } elseif($act_tab == 'upload-options') {
             return $this->settingTabUpLoadOptions();

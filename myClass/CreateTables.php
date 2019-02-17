@@ -28,7 +28,7 @@ class CreateTables
                   `name` varchar(255) NOT NULL,
                   `parameters` longtext,
                   `price` varchar(255),
-                  `id_category` int(11) NOT NULL,
+                  `id_category` int(11),
                   `offer_path` longtext,
                   `delivery` longtext,
                   PRIMARY KEY (`id`)
@@ -58,6 +58,7 @@ class CreateTables
                   `id` int(11) NOT NULL AUTO_INCREMENT,
                   `name` varchar(255) NOT NULL,
                   `address` longtext,
+                  `footer` longtext,
                   PRIMARY KEY (`id`)
                 );";
             $db->createCommand($sql)->execute();

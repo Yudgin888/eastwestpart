@@ -158,7 +158,7 @@ $(document).ready(function() {
     });
 
     // если кликаем в любом месте сайта, нужно спрятать подсказку
-    $(document).on('click', function(e){
+    $(document).on('click', function(){
         $('.search_advice_wrapper').hide();
     });
 
@@ -172,14 +172,14 @@ $(document).ready(function() {
         e.stopPropagation();
     });
 
-    $('.agency-name .btn-edit-agency').on('click', function(e){
-        var parent = $(e.target).closest('.agency-name');
+    $('.agency-block .btn-edit-open').on('click', function(e){
+        var parent = $(e.target).closest('.agency-block');
         $(parent).find('.tab1').css('display', 'none');
         $(parent).find('.tab2').css('display', 'block');
     });
 
-    $('.agency-name .btn-close-agency').on('click', function(e){
-        var parent = $(e.target).closest('.agency-name');
+    $('.agency-block .btn-edit-close').on('click', function(e){
+        var parent = $(e.target).closest('.agency-block');
         $(parent).find('.tab2').css('display', 'none');
         $(parent).find('.tab1').css('display', 'block');
     });
@@ -195,7 +195,7 @@ $(document).ready(function() {
                 name: name
             },
             type: 'POST',
-            success: function(res){
+            success: function(){
                 location.reload();
             },
             error: function(){
@@ -206,21 +206,99 @@ $(document).ready(function() {
     $('.agency-block .btn-del-agency').on('click', function(e){
         var parent = $(e.target).closest('.agency-block');
         var elem = $(parent).find('.tab1 p')[0];
-        if(confirm('Удалить представительство: ' + elem.innerText + '?')){
-            var id = $(parent).data('id');
-            $.ajax({
-                url: '/ajax/deleteagency',
-                data: {
-                    id: id,
+        $('#dialog').text("Удалить представительство " + elem.innerText + "?");
+        $("#dialog").dialog({
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+                'Да': function() {
+                    var id = $(parent).data('id');
+                    $.ajax({
+                        url: '/ajax/deleteagency',
+                        data: {
+                            id: id
+                        },
+                        type: 'POST',
+                        success: function(){
+                            location.reload();
+                        },
+                        error: function(){
+                        }
+                    });
+                    $(this).dialog("close");
                 },
-                type: 'POST',
-                success: function(){
-                    location.reload();
-                },
-                error: function(){
+                'Нет': function() {
+                    $(this).dialog("close");
                 }
-            });
-        }
+            }
+        });
+    });
+
+    $('.agency-block .btn-del-category').on('click', function(e){
+        var parent = $(e.target).closest('.agency-block');
+        var id = $(parent).data('id');
+        $("#dialog").dialog({
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+                'Да': function() {
+                    $.ajax({
+                        url: '/ajax/deletecategory',
+                        data: {
+                            id: id,
+                            mode: 'save'
+                        },
+                        type: 'POST',
+                        success: function(){
+                            location.reload();
+                        },
+                        error: function(){
+                        }
+                    });
+                    $(this).dialog("close");
+                },
+                'Нет': function() {
+                     $(this).dialog("close");
+                }
+            }
+        });
+    });
+
+    $('.agency-block .btn-del-footer').on('click', function(e){
+        var parent = $(e.target).closest('.agency-block');
+        var elem = $(parent).find('.tab1 p')[0];
+        $('#dialog').text('Удалить футер у ' + elem.innerText + '?');
+        $("#dialog").dialog({
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+                'Да': function() {
+                    var id = $(parent).data('id');
+                    $.ajax({
+                        url: '/ajax/deletefooter',
+                        data: {
+                            id: id
+                        },
+                        type: 'POST',
+                        success: function(){
+                            location.reload();
+                        },
+                        error: function(){
+                        }
+                    });
+                    $(this).dialog("close");
+                },
+                'Нет': function() {
+                    $(this).dialog("close");
+                }
+            }
+        });
     });
 
     $('.btn-model-cat-remove').on('click', function(e){

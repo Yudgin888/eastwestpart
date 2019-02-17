@@ -18,6 +18,7 @@ use app\models\Users;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+use yii\helpers\FileHelper;
 
 class AjaxController extends MainController
 {
@@ -173,9 +174,7 @@ class AjaxController extends MainController
             $agency = Agency::find()->where(['id' => $post['id']])->one();
             if ($agency) {
                 try {
-                    $agency_name = $agency->name;
                     $res = $agency->delete();
-                    Logs::addLog(Yii::$app->user->identity->username . ' удалил представительство: ' . $agency_name, 2);
                 } catch (\Throwable $ex) {}
             }
         }
@@ -186,6 +185,60 @@ class AjaxController extends MainController
         }
         return $res;
     }
+
+    public function actionDeletecategory()
+    {
+        $post = Yii::$app->request->post();
+        $res = false;
+        if ($post && !empty($post['id']) && Yii::$app->user->identity->getRole() === ADMIN) {
+            $id = $post['id'];
+            $category = Category::find()->where(['id' => $id])->one();
+            $cat_name = $category->name;
+            if ($category) {
+                try {
+                    $res = $category->delete();
+                } catch (\Throwable $ex) {}
+            }
+            if($post['mode'] === 'save'){
+                $models = TModel::find()->where(['id_category' => $id])->all();
+                foreach ($models as $model){
+                    $model->id_category = 0;
+                    $model->update();
+                }
+                $categories = Category::find()->where(['id_par' => $id])->all();
+                foreach ($categories as $cat){
+                    $cat->id_par = 0;
+                    $cat->update();
+                }
+                Yii::$app->session->setFlash('success-proc', 'Удалена категория: ' . $cat_name);
+            }
+        }
+        return $res;
+    }
+
+    public function actionDeletefooter()
+    {
+        $post = Yii::$app->request->post();
+        $res = false;
+        if ($post && !empty($post['id']) && Yii::$app->user->identity->getRole() === ADMIN) {
+            $agency = Agency::find()->where(['id' => $post['id']])->one();
+            if ($agency) {
+                try {
+                    $path = Yii::getAlias('@app/web/') . $agency->footer;
+                    $agency->footer = '';
+                    $agency->update();
+                    FileHelper::unlink($path);
+                } catch (\Throwable $ex) {}
+            }
+        }
+        if($res){
+            Yii::$app->session->setFlash('success-proc', 'Футер удален!');
+        } else {
+            Yii::$app->session->setFlash('error-proc', 'Не удалось удалить футер!');
+        }
+        return $res;
+    }
+
 
     public function actionModelcatremove()
     {
@@ -202,7 +255,6 @@ class AjaxController extends MainController
             Yii::$app->session->setFlash('error-proc', 'Не удалось удалить категории!');
         }
         if($res2){
-            Logs::addLog(Yii::$app->user->identity->username . ' удалил все модели', 2);
             Yii::$app->session->setFlash('success-load', 'Все модели удалены!');
         } else {
             Yii::$app->session->setFlash('error-load', 'Не удалось удалить модели!');
@@ -217,7 +269,6 @@ class AjaxController extends MainController
             $res1 = Option::deleteAll();
         }
         if($res1){
-            Logs::addLog(Yii::$app->user->identity->username . ' удалил все опции', 2);
             Yii::$app->session->setFlash('success-proc', 'Все опции удалены!');
         } else {
             Yii::$app->session->setFlash('error-proc', 'Не удалось удалить опции!');
@@ -240,7 +291,6 @@ class AjaxController extends MainController
             }
         }
         if($res1){
-            Logs::addLog(Yii::$app->user->identity->username . " удалил модел: {$model_name}", 2);
             Yii::$app->session->setFlash('success-proc', "Модель '{$model_name}' удалена!");
         } else {
             Yii::$app->session->setFlash('error-proc', "Не удалось удалить модель: '{$model_name}'!");

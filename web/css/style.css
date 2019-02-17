@@ -153,7 +153,7 @@
     vertical-align: top;
 }
 
-.agency-name .tab1 p {
+.agency-name .tab1 p.title {
     display: inline-block;
     margin: 0 0 20px 0;
     font-size: 18px;
@@ -161,12 +161,12 @@
     word-wrap: break-word;
 }
 
-.agency-name .tab2 {
-    display: none;
+.tab1 p.title span {
+    color: green;
 }
 
-.btn-del-agency {
-    float: right;
+.agency-name .tab2 {
+    display: none;
 }
 
 .select-agency {
@@ -177,14 +177,49 @@
     font-size: 16px;
 }
 
-.btn-edit-agency {
-    float: right;
-}
-
 .model-item h2 {
     display: inline-block;
     width: auto;
     margin-bottom: 20px;
     margin-right: 50px;
 
+}
+
+p.description {
+    font-size: 12px;
+    color: #3c3c3c;
+}
+
+.category-name .tab1 p.title {
+    display: inline-block;
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    width: 80%;
+    word-wrap: break-word;
+}
+
+.btn-danger, .btn-primary {
+    float: right;
+    margin: 0 5px;
+}
+
+#dialog-confirm {
+    border: 1px solid grey;
+    float:left;
+    margin:12px 12px 20px 0;
+}
+
+.tab2 {
+    border: 1px solid #b9b6b1;
+    border-radius: 3px;
+    padding: 10px 20px;
+}
+
+.tab2 .input-edit-name, .tab2 label, .tab2 select {
+    width: 100%;
+    margin-top: 5px;
+}
+
+.tab2 select {
+    margin-bottom: 10px;
 }
