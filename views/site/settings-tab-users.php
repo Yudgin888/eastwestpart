@@ -85,6 +85,7 @@ include 'settings-header.php';
 
     </div>
 </div>
+    <div id="dialog" style="display:none" title="Удаление пользователя"></div>
 
 <?php
 include 'settings-footer.php';

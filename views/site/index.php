@@ -10,7 +10,7 @@ $this->title = 'Скачать КП';
         <?php if(count($cats) > 0):?>
             <div class="selects-block">
                 <label for="cat-select">Выберите категорию товара</label>
-                <select id="cat-select" class="select-item-cat">
+                <select id="cat-select" class="select-item-cat form-control">
                     <option value="Выберите категорию" data-ism="0" data-id="0" selected>Выберите категорию</option>
                     <?php foreach ($cats as $cat):
                         $name = $cat['num'] . ' ' . $cat['name']?>

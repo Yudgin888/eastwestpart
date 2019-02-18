@@ -24,7 +24,7 @@ $(document).ready(function() {
     });
 
     $('.btn-no-basic-pdf').on('click', function(e){
-        var url = '/settings?tab=upload-offers';
+        var url = '/settings?tab=upload';
         window.open(url, '_target');
     });
 
@@ -47,16 +47,21 @@ $(document).ready(function() {
 
     $('.btn-save-delvr').on('click', function(e){
         var model = $(e.target).closest('.model-item');
-        var model_id = $(model).data('id');
-        var txt = $('#txt-area-delvr' + model_id).val();
+        var id = $(model).data('id');
+        var delivery = $('#txt-area-delvr' + id).val();
+        var name = $(model).find('.input-edit-name').val();
+        var id_category = $(model).find('option:selected').val();
         $.ajax({
             url: '/ajax/editmodel',
             data: {
-                id: model_id,
-                txt: txt
+                id: id,
+                delivery: delivery,
+                name: name,
+                id_category: id_category
             },
             type: 'POST',
             success: function(){
+                location.reload();
             },
             error: function(){
             }
@@ -172,16 +177,100 @@ $(document).ready(function() {
         e.stopPropagation();
     });
 
-    $('.agency-block .btn-edit-open').on('click', function(e){
-        var parent = $(e.target).closest('.agency-block');
+
+    $('.model-item .btn-edit-open').on('click', function(e){
+        var parent = $(e.target).closest('.model-item');
         $(parent).find('.tab1').css('display', 'none');
         $(parent).find('.tab2').css('display', 'block');
     });
 
-    $('.agency-block .btn-edit-close').on('click', function(e){
-        var parent = $(e.target).closest('.agency-block');
+    $('.model-item .btn-edit-open-opt').on('click', function(e){
+        var parent = $(e.target).closest('.model-item');
+        var id = $(parent).data('id');
+        $.ajax({
+            url: '/ajax/geteditoption',
+            data: {
+                id: id,
+            },
+            type: 'POST',
+            success: function(data){
+                if(data != false) {
+                    $(parent).find('.tab2')[0].innerHTML = data;
+                    $(parent).find('.tab1').css('display', 'none');
+                    $(parent).find('.tab2').css('display', 'block');
+                }
+            },
+            error: function(){
+            }
+        });
+    });
+
+    $(document).on('click', '.model-item .btn-edit-close-option', function(e){
+        var parent = $(e.target).closest('.model-item');
+        $(parent).find('.tab2')[0].innerHTML = '';
         $(parent).find('.tab2').css('display', 'none');
         $(parent).find('.tab1').css('display', 'block');
+    });
+
+    $('.model-item .btn-edit-close').on('click', function(e){
+        var parent = $(e.target).closest('.model-item');
+        $(parent).find('.tab2').css('display', 'none');
+        $(parent).find('.tab1').css('display', 'block');
+    });
+
+
+    $(document).on('click', '.category-block .btn-edit-close', function(e){
+        var parent = $(e.target).closest('.category-block');
+        $(parent).find('.tab2').css('display', 'none');
+        $(parent).find('.tab1').css('display', 'block');
+    });
+
+    $('.category-block .btn-save-category').on('click', function(e){
+        var parent = $(e.target).closest('.model-item');
+        var id = $(parent).data('id');
+        var num = $(parent).find('.input-edit-num').val();
+        var name = $(parent).find('.input-edit-name').val();
+        var id_par = $(parent).find('option:selected').val();
+        $.ajax({
+            url: '/ajax/editcategory',
+            data: {
+                id: id,
+                num: num,
+                name: name,
+                id_par: id_par
+            },
+            type: 'POST',
+            success: function(){
+                location.reload();
+            },
+            error: function(){
+            }
+        });
+    });
+
+    $(document).on('click', '.model-item .btn-save-option', function(e){
+        var parent = $(e.target).closest('.model-item');
+        var id = $(parent).data('id');
+        var name = $(parent).find('.input-edit-name').val();
+        var model = $(parent).find('.select-model option:selected').val();
+        var cost = $(parent).find('.input-edit-cost').val();
+        var type = $(parent).find('.select-type option:selected').val();
+        $.ajax({
+            url: '/ajax/editoption',
+            data: {
+                id: id,
+                name: name,
+                model: model,
+                cost: cost,
+                type: type
+            },
+            type: 'POST',
+            success: function(){
+                location.reload();
+            },
+            error: function(){
+            }
+        });
     });
 
     $('.agency-name .btn-save-agency').on('click', function(e){
@@ -217,6 +306,39 @@ $(document).ready(function() {
                     var id = $(parent).data('id');
                     $.ajax({
                         url: '/ajax/deleteagency',
+                        data: {
+                            id: id
+                        },
+                        type: 'POST',
+                        success: function(){
+                            location.reload();
+                        },
+                        error: function(){
+                        }
+                    });
+                    $(this).dialog("close");
+                },
+                'Нет': function() {
+                    $(this).dialog("close");
+                }
+            }
+        });
+    });
+
+    $('.btn-del-option').on('click', function(e){
+        var parent = $(e.target).closest('.model-item');
+        var elem = $(parent).find('.tab1 .opt-name')[0];
+        $('#dialog').text("Удалить опцию " + elem.innerText + "?");
+        $("#dialog").dialog({
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+                'Да': function() {
+                    var id = $(parent).data('id');
+                    $.ajax({
+                        url: '/ajax/deleteoption',
                         data: {
                             id: id
                         },
@@ -302,51 +424,90 @@ $(document).ready(function() {
     });
 
     $('.btn-model-cat-remove').on('click', function(e){
-        if(confirm('Вы уверены?')){
-            $.ajax({
-                url: '/ajax/modelcatremove',
-                type: 'POST',
-                success: function(){
-                    location.reload();
+        $('#dialog').text('Вы уверены?');
+        $("#dialog").dialog({
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+                'Да': function() {
+                    $.ajax({
+                        url: '/ajax/modelcatremove',
+                        type: 'POST',
+                        success: function(){
+                            location.reload();
+                        },
+                        error: function(){
+                        }
+                    });
+                    $(this).dialog("close");
                 },
-                error: function(){
+                'Нет': function() {
+                    $(this).dialog("close");
                 }
-            });
-        }
+            }
+        });
     });
 
     $('.btn-option-remove').on('click', function(e){
-        if(confirm('Вы уверены?')){
-            $.ajax({
-                url: '/ajax/optionremove',
-                type: 'POST',
-                success: function(){
-                    location.reload();
+        $('#dialog').text('Вы уверены?');
+        $("#dialog").dialog({
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+                'Да': function() {
+                    $.ajax({
+                        url: '/ajax/optionremove',
+                        type: 'POST',
+                        success: function(){
+                            location.reload();
+                        },
+                        error: function(){
+                        }
+                    });
+                    $(this).dialog("close");
                 },
-                error: function(){
+                'Нет': function() {
+                    $(this).dialog("close");
                 }
-            });
-        }
+            }
+        });
     });
 
     $('.btn-del-model').on('click', function(e){
         var parent = $(e.target).closest('.model-item');
         var elem = $(parent).find('h2')[0];
-        if(confirm('Удалить: ' + elem.innerText + '?')){
-            var id = $(parent).data('id');
-            $.ajax({
-                url: '/ajax/deletemodel',
-                data: {
-                    id: id,
+        $('#dialog').text('Удалить: ' + elem.innerText + '?');
+        $("#dialog").dialog({
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+                'Да': function() {
+                    var id = $(parent).data('id');
+                    $.ajax({
+                        url: '/ajax/deletemodel',
+                        data: {
+                            id: id,
+                        },
+                        type: 'POST',
+                        success: function(){
+                            location.reload();
+                        },
+                        error: function(){
+                        }
+                    });
+                    $(this).dialog("close");
                 },
-                type: 'POST',
-                success: function(){
-                    location.reload();
-                },
-                error: function(){
+                'Нет': function() {
+                    $(this).dialog("close");
                 }
-            });
-        }
+            }
+        });
     });
 });
 
@@ -418,19 +579,33 @@ function delUser(e){
     var tr = $(e.target).closest('tr')[0];
     var id = $(tr).data('id');
     var elem = $(tr).find('td:nth-child(2)')[0];
-    if(confirm('Удалить пользователя: ' + elem.innerText + '?')) {
-        $.ajax({
-            url: '/ajax/deleteuser',
-            data: {
-                id: id
+    $('#dialog').text('Удалить пользователя: ' + elem.innerText + '?');
+    $("#dialog").dialog({
+        resizable: false,
+        height: "auto",
+        width: 400,
+        modal: true,
+        buttons: {
+            'Да': function() {
+                $.ajax({
+                    url: '/ajax/deleteuser',
+                    data: {
+                        id: id
+                    },
+                    type: 'POST',
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function () {
+                    }
+                });
+                $(this).dialog("close");
             },
-            type: 'POST',
-            success: function () {
-            },
-            error: function () {
+            'Нет': function() {
+                $(this).dialog("close");
             }
-        });
-    }
+        }
+    });
 }
 
 function getSubCat(id, ism){

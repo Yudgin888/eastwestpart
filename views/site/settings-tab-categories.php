@@ -6,26 +6,29 @@ include 'settings-header.php';
 ?>
 
 <div class="setting-tab-item">
-    <h2>Категории (<?= count($categories) ?>):</h2>
+    <h2>Категории (<?= count($linecategories) ?>):</h2>
 
     <div class="container">
-        <?php if (count($categories) == 0): ?>
+        <?php if (count($linecategories) == 0): ?>
             <p>Не найдено ни одной категории!</p>
         <?php else: ?>
             <?php foreach ($categories as $category): ?>
                 <hr>
-                <div class="model-item agency-block" data-id="<?= $category['id'] ?>">
+                <div class="model-item category-block" data-id="<?= $category['id'] ?>">
                     <div class="agency-name">
                         <div class="tab1">
                             <p class="title"><?= $category['num'] . ' ' . $category['name'] . ($category['ism'] ? ' <span title="Есть модели, привязанные к данной категории">(м)</span>' : '') ?></p>
                         </div>
                         <div class="tab2">
-                            <input class='input-edit-num' type="text" value="<?= $category['num'] ?>">
-                            <input class='input-edit-name' type="text" value="<?= $category['name'] ?>">
+                            <input class='input-edit-num form-control' type="text" value="<?= $category['num'] ?>">
+                            <input class='input-edit-name form-control' type="text" value="<?= $category['name'] ?>">
                             <label>Родительская категория: </label>
-                            <select>
+                            <select class="form-control">
+                                <option <?= ($category['id_par'] == 0 ? 'selected' : '')?> value="0">Корневая категория</option>
                                 <?php foreach ($linecategories as $cat):?>
-                                <option <?= ($category['id_par'] == $cat['id'] ? 'selected' : '')?> value="<?= $cat['id']?>"><?= $cat['num'] . ' ' . $cat['name']?></option>
+                                    <?php if($category['id'] != $cat['id']):?>
+                                    <option <?= ($category['id_par'] == $cat['id'] ? 'selected' : '')?> value="<?= $cat['id']?>"><?= str_repeat('-', intval($cat['lvl'])) . $cat['num'] . ' ' . $cat['name']?></option>
+                                    <?php endif;?>
                                 <?php endforeach;?>
                             </select>
 
@@ -54,19 +57,22 @@ include 'settings-footer.php';
 function subcategories($cats, $lvl, $linecategories)
 {
     foreach ($cats as $category):?>
-        <div class="model-item agency-block block-lvl" style="margin-left: <?= $lvl * 30 ?>px"
+        <div class="model-item category-block block-lvl" style="margin-left: <?= $lvl * 30 ?>px"
              data-id="<?= $category['id'] ?>">
             <div class="agency-name">
                 <div class="tab1">
                     <p class="title"><?= $category['num'] . ' ' . $category['name'] . ($category['ism'] ? ' <span title="Есть модели, привязанные к данной категории">(м)</span>' : '') ?></p>
                 </div>
                 <div class="tab2">
-                    <label>Номер категории: <input class='input-edit-num' type="text" value="<?= $category['num'] ?>"></label>
-                    <input class='input-edit-name' type="text" value="<?= $category['name'] ?>">
+                    <label>Номер категории: <input class='input-edit-num form-control' type="text" value="<?= $category['num'] ?>"></label>
+                    <label>Название: <input class='input-edit-name form-control' type="text" value="<?= $category['name'] ?>"></label>
                     <label>Родительская категория: </label>
-                    <select>
+                    <select class="form-control">
+                        <option <?= ($category['id_par'] == 0 ? 'selected' : '')?> value="0">Корневая категория</option>
                         <?php foreach ($linecategories as $cat):?>
-                            <option <?= ($cat['id_par'] == $cat['id'] ? 'selected' : '')?> value="<?= $cat['id']?>"><?= $cat['num'] . ' ' . $cat['name']?></option>
+                            <?php if($category['id'] != $cat['id']):?>
+                                <option <?= ($category['id_par'] == $cat['id'] ? 'selected' : '')?> value="<?= $cat['id']?>"><?= str_repeat('-', intval($cat['lvl'])) . $cat['num'] . ' ' . $cat['name']?></option>
+                            <?php endif;?>
                         <?php endforeach;?>
                     </select>
 

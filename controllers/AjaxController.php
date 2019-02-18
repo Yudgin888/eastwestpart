@@ -14,6 +14,7 @@ use app\models\Cities;
 use app\models\Logs;
 use app\models\Option;
 use app\models\TModel;
+use app\models\User;
 use app\models\Users;
 use Yii;
 use yii\filters\AccessControl;
@@ -74,7 +75,7 @@ class AjaxController extends MainController
             $cats = Category::find()->asArray()->where('id_par=' . $id)->all();
             $result = '';
             if (count($cats) > 0) {
-                $result .= '<select class="select-item-cat">
+                $result .= '<select class="select-item-cat form-control">
                                 <option value="Выберите категорию" data-ism="0" data-id="0" selected>Выберите категорию</option>';
                 foreach ($cats as $cat) {
                     $name = $cat['num'] . ' ' . $cat['name'];
@@ -86,43 +87,15 @@ class AjaxController extends MainController
         } else return false;
     }
 
-    public function actionDeleteuser()
-    {
-        $post = Yii::$app->request->post();
-        if ($post && Yii::$app->user->identity->getRole() === ADMIN) {
-            $user = Users::find()->where(['id' => $post['id']])->one();
-            if ($this->delUserById($post['id'])) {
-                Logs::addLog(Yii::$app->user->identity->username . ' удалил пользователя: ' . $user->username, 2);
-                Yii::$app->session->setFlash('success-proc', 'Пользователь удален!');
-            } else {
-                Yii::$app->session->setFlash('error-proc', 'Не удалось удалить пользователя!');
-            }
-            return $this->redirect('/settings?tab=users');
-        } else return false;
-    }
-
-    private function delUserById($id)
-    {
-        $user = Users::find()->where(['id' => $id])->one();
-        if ($user) {
-            if (!Yii::$app->user->isGuest && Yii::$app->user->identity->getId() != $id) {
-                try {
-                    return $user->delete();
-                } catch (\Throwable $ex) {
-                    return false;
-                }
-            }
-        }
-        return false;
-    }
-
     public function actionEditmodel()
     {
         $post = Yii::$app->request->post();
         if ($post && Yii::$app->user->identity->getRole() === ADMIN) {
             $model = TModel::find()->where(['id' => $post['id']])->all()[0];
             if ($model) {
-                $model->delivery = addslashes(htmlspecialchars($post['txt']));
+                $model->delivery = addslashes(htmlspecialchars($post['delivery']));
+                $model->name = $post['name'];
+                $model->id_category = intval($post['id_category']);
                 try {
                     $model->update();
                     Yii::$app->session->setFlash('success-proc', 'Изменения сохранены!');
@@ -132,7 +105,7 @@ class AjaxController extends MainController
             } else {
                 Yii::$app->session->setFlash('error-proc', 'Не удалось сохранить изменения!');
             }
-            return $this->redirect('/settings?tab=upload-offers');
+            return $this->redirect('/settings?tab=models');
         } else return false;
     }
 
@@ -142,7 +115,7 @@ class AjaxController extends MainController
         if ($post && !empty($post['query'])) {
             $query = $post['query'];
             $result = Cities::find()->asArray()->where(['like', 'name', $query])->limit(10)->all();
-            $result = array_map(function($item){
+            $result = array_map(function ($item) {
                 return $item['name'];
             }, $result);
             return json_encode($result);
@@ -175,15 +148,102 @@ class AjaxController extends MainController
             if ($agency) {
                 try {
                     $res = $agency->delete();
-                } catch (\Throwable $ex) {}
+                } catch (\Throwable $ex) {
+                }
             }
         }
-        if($res){
+        if ($res) {
             Yii::$app->session->setFlash('success-proc', 'Представительство удалено!');
         } else {
             Yii::$app->session->setFlash('error-proc', 'Не удалось удалить представительство!');
         }
         return $res;
+    }
+
+    public function actionDeleteoption()
+    {
+        $post = Yii::$app->request->post();
+        $res = false;
+        if ($post && !empty($post['id']) && Yii::$app->user->identity->getRole() === ADMIN) {
+            $option = Option::find()->where(['id' => $post['id']])->one();
+            if ($option) {
+                try {
+                    $res = $option->delete();
+                } catch (\Throwable $ex) {
+                }
+            }
+        }
+        if ($res) {
+            Yii::$app->session->setFlash('success-proc', 'Опция удалена!');
+        } else {
+            Yii::$app->session->setFlash('error-proc', 'Не удалось удалить опцию!');
+        }
+        return $res;
+    }
+
+    public function actionGeteditoption()
+    {
+        $post = Yii::$app->request->post();
+        $res = false;
+        if ($post && !empty($post['id']) && Yii::$app->user->identity->getRole() === ADMIN) {
+            $option = Option::find()->where(['id' => $post['id']])->one();
+            $models = TModel::find()->asArray()->all();
+            $res = "<label>Опция: <input class='input-edit-name form-control' type='text' value='" . $option['name'] . "'></label>
+                    <label>Модель:</label>
+                    <select class='form-control select-model'>";
+                    foreach ($models as $model):
+                        $res .= "<option " . ($option['id_model'] == $model['id'] ? 'selected' : '') . " value='" . $model['id'] . "'>" . $model['name'] . "</option>";
+                    endforeach;
+            $res .= "</select>
+                    <label>Стоимость: <input class='input-edit-cost form-control' type='text' value='" . $option['cost'] . "'></label>
+                    <label>Тип опции:</label>
+                    <select class='form-control select-type'>
+                          <option " . ($option['basic'] == 1 ? 'selected' : '') . " value='1'>Базовая</option>
+                          <option " . ($option['basic'] == 0 ? 'selected' : '') . " value='0'>Дополнительная</option>
+                    </select>" .
+                \yii\helpers\Html::submitButton('', ['class' => 'btn-save-option btn btn-success glyphicon glyphicon-ok', 'name' => 'save-button', 'title' => 'Сохранить']) .
+                \yii\helpers\Html::submitButton('', ['class' => 'btn-edit-close-option btn btn-danger glyphicon glyphicon-remove', 'name' => 'close-button', 'title' => 'Отмена']);
+        }
+        return $res;
+    }
+
+    public function actionEditoption()
+    {
+        $post = Yii::$app->request->post();
+        if ($post && !empty($post['name']) && Yii::$app->user->identity->getRole() === ADMIN) {
+            $opt = Option::findOne(['id' => $post['id']]);
+            if ($opt) {
+                $opt->name = $post['name'];
+                $opt->cost = $post['cost'];
+                $opt->id_model = intval($post['model']);
+                $opt->basic = intval($post['type']);
+                $opt->update();
+                Yii::$app->session->setFlash('success-proc', 'Изменения сохранены!');
+                return true;
+            } else {
+                Yii::$app->session->setFlash('error-proc', 'Не удалось сохранить изменения!');
+                return false;
+            }
+        } else return false;
+    }
+
+    public function actionEditcategory()
+    {
+        $post = Yii::$app->request->post();
+        if ($post && !empty($post['name']) && Yii::$app->user->identity->getRole() === ADMIN) {
+            $cat = Category::findOne(['id' => $post['id']]);
+            if ($cat) {
+                $cat->name = $post['name'];
+                $cat->num = $post['num'];
+                $cat->id_par = $post['id_par'];
+                $cat->update();
+                Yii::$app->session->setFlash('success-proc', 'Изменения сохранены!');
+                return true;
+            } else {
+                Yii::$app->session->setFlash('error-proc', 'Не удалось сохранить изменения!');
+                return false;
+            }
+        } else return false;
     }
 
     public function actionDeletecategory()
@@ -197,16 +257,17 @@ class AjaxController extends MainController
             if ($category) {
                 try {
                     $res = $category->delete();
-                } catch (\Throwable $ex) {}
+                } catch (\Throwable $ex) {
+                }
             }
-            if($post['mode'] === 'save'){
+            if ($post['mode'] === 'save') {
                 $models = TModel::find()->where(['id_category' => $id])->all();
-                foreach ($models as $model){
+                foreach ($models as $model) {
                     $model->id_category = 0;
                     $model->update();
                 }
                 $categories = Category::find()->where(['id_par' => $id])->all();
-                foreach ($categories as $cat){
+                foreach ($categories as $cat) {
                     $cat->id_par = 0;
                     $cat->update();
                 }
@@ -228,10 +289,11 @@ class AjaxController extends MainController
                     $agency->footer = '';
                     $agency->update();
                     FileHelper::unlink($path);
-                } catch (\Throwable $ex) {}
+                } catch (\Throwable $ex) {
+                }
             }
         }
-        if($res){
+        if ($res) {
             Yii::$app->session->setFlash('success-proc', 'Футер удален!');
         } else {
             Yii::$app->session->setFlash('error-proc', 'Не удалось удалить футер!');
@@ -248,13 +310,12 @@ class AjaxController extends MainController
             $res1 = Category::deleteAll();
             $res2 = TModel::deleteAll();
         }
-        if($res1){
-            Logs::addLog(Yii::$app->user->identity->username . ' удалил все категории', 2);
+        if ($res1) {
             Yii::$app->session->setFlash('success-proc', 'Все категории удалены!');
         } else {
             Yii::$app->session->setFlash('error-proc', 'Не удалось удалить категории!');
         }
-        if($res2){
+        if ($res2) {
             Yii::$app->session->setFlash('success-load', 'Все модели удалены!');
         } else {
             Yii::$app->session->setFlash('error-load', 'Не удалось удалить модели!');
@@ -268,12 +329,33 @@ class AjaxController extends MainController
         if (Yii::$app->request->isAjax && Yii::$app->user->identity->getRole() === ADMIN) {
             $res1 = Option::deleteAll();
         }
-        if($res1){
+        if ($res1) {
             Yii::$app->session->setFlash('success-proc', 'Все опции удалены!');
         } else {
             Yii::$app->session->setFlash('error-proc', 'Не удалось удалить опции!');
         }
         return $res1;
+    }
+
+    public function actionDeleteuser()
+    {
+        $post = Yii::$app->request->post();
+        $res = false;
+        if ($post && !empty($post['id']) && Yii::$app->user->identity->getRole() === ADMIN && Yii::$app->user->identity->getId() != $post['id']) {
+            $user = Users::find()->where(['id' => $post['id']])->one();
+            if ($user) {
+                try {
+                    $res = $user->delete();
+                } catch (\Throwable $ex) {
+                }
+            }
+        }
+        if ($res) {
+            Yii::$app->session->setFlash('success-proc', 'Пользователь удален!');
+        } else {
+            Yii::$app->session->setFlash('error-proc', 'Не удалось удалить пользователя!');
+        }
+        return $res;
     }
 
     public function actionDeletemodel()
@@ -287,10 +369,11 @@ class AjaxController extends MainController
                 try {
                     $model_name = $model->name;
                     $res1 = $model->delete();
-                } catch (\Throwable $ex) {}
+                } catch (\Throwable $ex) {
+                }
             }
         }
-        if($res1){
+        if ($res1) {
             Yii::$app->session->setFlash('success-proc', "Модель '{$model_name}' удалена!");
         } else {
             Yii::$app->session->setFlash('error-proc', "Не удалось удалить модель: '{$model_name}'!");

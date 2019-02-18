@@ -66,6 +66,36 @@ AppAsset::register($this);
 //            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
 //        ]) ?>
         <?= Alert::widget() ?>
+        <?php
+        $success = [
+            '0' => 'success-load',
+            '1' => 'success-load-2',
+            '2' => 'success-parse-cost',
+            '3' => 'success-parse-cost-count',
+            '4' => 'success-proc',
+        ];
+        $error = [
+            '0' => 'error-load',
+            '1' => 'error-load-2',
+            '2' => 'error-parse-cost',
+            '3' => 'error-proc',
+        ];
+        foreach ($success as $item):
+            if(Yii::$app->session->hasFlash($item)):?>
+                <div class="alert alert-success alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <?= Yii::$app->session->getFlash($item);?>
+                </div>
+            <?php endif;?>
+        <?php endforeach;?>
+        <?php foreach ($error as $item):
+            if(Yii::$app->session->hasFlash($item)):?>
+                <div class="alert alert-danger alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <?= Yii::$app->session->getFlash($item);?>
+                </div>
+            <?php endif;?>
+        <?php endforeach;?>
         <?= $content ?>
     </div>
 </div>

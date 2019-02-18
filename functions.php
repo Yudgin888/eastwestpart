@@ -38,7 +38,6 @@ function parseCostFile($fileName)
             'mess' => $ex->getMessage(),
         ];
     }
-    \app\models\Logs::addLog(Yii::$app->user->identity->username . " обновил список опций (добавлено: {$option_count}", 2);
     return [
         'code' => 'success',
         'mess' => $option_count,
@@ -148,7 +147,7 @@ function getSubCategories($cat, $parent_cat = '\*', $level = 1, &$i = 0)
             continue;
         }
 
-        if (!empty($str) && preg_match('/\*[0-9][.]/', $str)) {
+        if (preg_match('/\*[0-9][.]/', $str)) {
             $matches = [];
             preg_match('/[*][0-9.]{1,}/', $str, $number);
             if (!empty($number)) {
@@ -215,6 +214,41 @@ function CreateTree($cats, $sub = 0)
         }
     }
     return $res;
+}
+
+function sortCategories($cats){
+    $cats = CreateTree($cats);
+    usort($cats, function($a, $b){
+        $a = intval(str_replace('.', '', $a['num']));
+        $b = intval(str_replace('.', '', $b['num']));
+        return $a - $b;
+    });
+    $list_cats = [];
+    foreach ($cats as $cat){
+        $cat['lvl'] = 0;
+        $list_cats[] = $cat;
+        if(isset($cat['childs'])){
+            $list_cats = array_merge($list_cats, getChilds($cat['childs']));
+        }
+    }
+    return $list_cats;
+}
+
+function getChilds($cats, $lvl = 1){
+    $list_cats = [];
+    usort($cats, function($a, $b){
+        $a = intval(str_replace('.', '', $a['num']));
+        $b = intval(str_replace('.', '', $b['num']));
+        return $a - $b;
+    });
+    foreach ($cats as $cat){
+        $cat['lvl'] = $lvl;
+        $list_cats[] = $cat;
+        if(isset($cat['childs'])){
+            $list_cats = array_merge($list_cats, getChilds($cat['childs'], $lvl + 1));
+        }
+    }
+    return $list_cats;
 }
 
 /**
