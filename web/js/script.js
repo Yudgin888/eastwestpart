@@ -388,8 +388,8 @@ $(document).ready(function() {
         });
     });
 
-    $('.agency-block .btn-del-category').on('click', function(e){
-        var parent = $(e.target).closest('.agency-block');
+    $('.category-block .btn-del-category').on('click', function(e){
+        var parent = $(e.target).closest('.category-block');
         var id = $(parent).data('id');
         $("#dialog").dialog({
             resizable: false,
