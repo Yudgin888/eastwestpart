@@ -191,9 +191,9 @@ class AjaxController extends MainController
             $res = "<label>Опция: <input class='input-edit-name form-control' type='text' value='" . $option['name'] . "'></label>
                     <label>Модель:</label>
                     <select class='form-control select-model'>";
-                    foreach ($models as $model):
-                        $res .= "<option " . ($option['id_model'] == $model['id'] ? 'selected' : '') . " value='" . $model['id'] . "'>" . $model['name'] . "</option>";
-                    endforeach;
+            foreach ($models as $model):
+                $res .= "<option " . ($option['id_model'] == $model['id'] ? 'selected' : '') . " value='" . $model['id'] . "'>" . $model['name'] . "</option>";
+            endforeach;
             $res .= "</select>
                     <label>Стоимость: <input class='input-edit-cost form-control' type='text' value='" . $option['cost'] . "'></label>
                     <label>Тип опции:</label>
@@ -335,6 +335,20 @@ class AjaxController extends MainController
             Yii::$app->session->setFlash('error-proc', 'Не удалось удалить опции!');
         }
         return $res1;
+    }
+
+    public function actionClearlogs()
+    {
+        $post = Yii::$app->request->post();
+        if ($post && Yii::$app->user->identity->getRole() === ADMIN) {
+            try {
+                Logs::deleteAll();
+                Yii::$app->session->setFlash('success-proc', 'Логи удалены!');
+            } catch (\Throwable $ex) {
+                Yii::$app->session->setFlash('error-proc', 'Не удалось удалить логи!');
+            }
+        }
+        return true;
     }
 
     public function actionDeleteuser()

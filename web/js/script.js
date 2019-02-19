@@ -24,7 +24,7 @@ $(document).ready(function() {
     });
 
     $('.btn-no-basic-pdf').on('click', function(e){
-        var url = '/settings?tab=upload';
+        var url = '/settings?tab=models';
         window.open(url, '_target');
     });
 
@@ -64,6 +64,36 @@ $(document).ready(function() {
                 location.reload();
             },
             error: function(){
+            }
+        });
+    });
+
+    $('.clear-logs-button').on('click', function(){
+        $('#dialog').text("Очистить логи?");
+        $("#dialog").dialog({
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+                'Да': function() {
+                    $.ajax({
+                        url: '/ajax/clearlogs',
+                        type: 'POST',
+                        data: {
+                            id: 'clear'
+                        },
+                        success: function(){
+                            location.reload();
+                        },
+                        error: function(){
+                        }
+                    });
+                    $(this).dialog("close");
+                },
+                'Нет': function() {
+                    $(this).dialog("close");
+                }
             }
         });
     });
